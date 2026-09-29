@@ -1,0 +1,44 @@
+{
+  "name": "agent-page-protocol",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Agent Page Protocol (APP) monorepo",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @agent-page/server -w @agent-page/client -w @agent-page/tool-core -w @agent-page/cli -w @agent-page/mcp -w @agent-page/example-flights -w @agent-page/conformance",
+    "test": "npm run test -w @agent-page/server -w @agent-page/client -w @agent-page/conformance -w @agent-page/tool-core -w @agent-page/cli -w @agent-page/mcp && npm run build -w @agent-page/example-flights && node --test examples/flights/test/*.test.ts && npm run test:extension && npm run test:demo && npm run test:agent && npm run test:features && npm run test:auth && npm run test:schema",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "cli": "node packages/cli/dist/bin.js",
+    "mcp": "node packages/mcp/dist/bin.js",
+    "example:flights": "npm run start -w @agent-page/example-flights",
+    "gen:fixtures": "node extension/.harness/generate-fixtures.mjs",
+    "test:extension": "npm run gen:fixtures -- --check && node extension/.harness/run-node.mjs",
+    "demo": "node demo/serve.mjs",
+    "test:demo": "node demo/validate.mjs",
+    "test:agent": "node demo/test-agent.mjs",
+    "test:features": "node demo/test-features.mjs",
+    "test:auth": "node demo/auth-run.mjs",
+    "test:schema": "node schema/validate-schemas.mjs && node --test schema/documents.test.mjs schema/semantics.test.mjs schema/parity.test.mjs schema/fuzz.test.mjs schema/projection.test.mjs schema/emit.test.mjs schema/request-fuzz.test.mjs schema/emit-wire.test.mjs schema/conformance-emit.test.mjs schema/diff.test.mjs schema/event-fuzz.test.mjs schema/extension-fuzz.test.mjs schema/request-wire.test.mjs schema/drift.test.mjs schema/node-semantics.test.mjs schema/generative.test.mjs schema/generative-mutants.test.mjs schema/diff-generative.test.mjs schema/boundary.test.mjs schema/generator-coverage.test.mjs schema/extension-diff.test.mjs",
+    "schema:check": "node schema/check-documents.mjs",
+    "site:build": "node deploy/protocol-site/build-site.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.12.0",
+    "prettier": "3.9.7",
+    "puppeteer": "25.11.0",
+    "typescript-eslint": "8.70.1"
+  }
+}

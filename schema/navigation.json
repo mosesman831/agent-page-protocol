@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "navigation.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "breadcrumb": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/navItem" }
+    },
+    "related": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/navItem" }
+    },
+    "anchors": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/anchor" },
+      "description": "1.1 deep-focus anchors."
+    }
+  },
+  "$defs": {
+    "navItem": {
+      "type": "object",
+      "required": ["label", "url"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "page_id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,127}$" },
+        "rel": { "enum": ["up", "next", "prev", "related", "alternate"] }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "required": ["id", "label", "pointer"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "pointer": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^/" }
+      }
+    }
+  }
+}

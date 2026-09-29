@@ -1,0 +1,123 @@
+{
+  "app": "1.1",
+  "page": {
+    "id": "skin-store",
+    "url": "http://127.0.0.1:8765/harness/store",
+    "title": "Demo Store - Flights",
+    "version": "s-1"
+  },
+  "state": {
+    "products": {
+      "type": "array",
+      "label": "Flights",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-001" },
+            "title": { "type": "string", "value": "London -> Dubai" },
+            "image": {
+              "type": "string",
+              "value": "http://127.0.0.1:8765/extension/assets/img/dxb.jpg"
+            },
+            "price": { "type": "number", "value": 84500, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "08:40" },
+            "arrival": { "type": "string", "value": "19:25" },
+            "duration": { "type": "number", "value": 525 },
+            "stops": { "type": "number", "value": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-002" },
+            "title": { "type": "string", "value": "London -> Dubai" },
+            "price": { "type": "number", "value": 64000, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "10:15" },
+            "arrival": { "type": "string", "value": "21:00" },
+            "duration": { "type": "number", "value": 525 },
+            "stops": { "type": "number", "value": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-010" },
+            "title": { "type": "string", "value": "London -> New York" },
+            "image": {
+              "type": "string",
+              "value": "http://127.0.0.1:8765/extension/assets/img/jfk.jpg"
+            },
+            "price": { "type": "number", "value": 38900, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "offer",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "07:05" },
+            "arrival": { "type": "string", "value": "10:20" },
+            "duration": { "type": "number", "value": 495 },
+            "stops": { "type": "number", "value": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-020" },
+            "title": { "type": "string", "value": "London -> Singapore" },
+            "image": {
+              "type": "string",
+              "value": "http://127.0.0.1:8765/extension/assets/img/sin.jpg"
+            },
+            "price": { "type": "number", "value": 91200, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "20:35" },
+            "arrival": { "type": "string", "value": "16:55" },
+            "duration": { "type": "number", "value": 740 },
+            "stops": { "type": "number", "value": 1 }
+          }
+        }
+      ]
+    }
+  },
+  "present": {
+    "layout": "list",
+    "sections": [
+      {
+        "id": "flights",
+        "state_path": "products",
+        "layout": "grid",
+        "item_key": "id",
+        "primary_action": "select_fare",
+        "label": "Flights"
+      }
+    ]
+  },
+  "actions": {
+    "select_fare": {
+      "kind": "mutate",
+      "side_effect": "safe",
+      "description": "Select fare",
+      "input": {},
+      "output": {}
+    }
+  }
+}

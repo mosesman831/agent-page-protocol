@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error-envelope.json",
+  "type": "object",
+  "required": ["app", "error"],
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "enum": ["1.0", "1.1"]
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "message", "retryable", "http_status"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^app\\.(err|warn)(\\.[a-z0-9_]+)+$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "message_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_.]+$",
+          "description": "Client catalog id when features.error_i18n (1.1)."
+        },
+        "path": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "retry_class": {
+          "enum": ["none", "transport", "rate", "conflict", "auth", "hold", "challenge"],
+          "description": "Optional 1.1 retry hint. Absent falls back to retryable."
+        },
+        "http_status": {
+          "type": ["integer", "null"],
+          "minimum": 100,
+          "maximum": 599
+        },
+        "details": {
+          "type": "object"
+        },
+        "recoverable_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "retry_after_ms": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "confirmation_challenge": {
+          "type": "string",
+          "description": "Echo-challenge token the client must return in X-APP-Confirmation (Mode A, SPEC \u00a710.4)."
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "description": "Optional; carries e.g. confirmation challenge meta.server_time (SPEC \u00a710.4)."
+    }
+  }
+}

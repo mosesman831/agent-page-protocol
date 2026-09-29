@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "action-request.json",
+  "type": "object",
+  "required": ["app", "action"],
+  "additionalProperties": false,
+  "properties": {
+    "app": { "enum": ["1.0", "1.1"] },
+    "action": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+    "params": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,63}$" }
+    },
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["agent", "renderer", "extension", "test"] },
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "page_id": { "type": "string" },
+        "page_url": { "type": "string" },
+        "manifest_version": { "type": "string" }
+      }
+    }
+  }
+}

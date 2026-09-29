@@ -1,0 +1,9 @@
+.git
+docs
+examples
+extension
+schema
+benchmarks
+deploy
+*.md
+!README.md

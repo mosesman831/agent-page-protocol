@@ -1,0 +1,42 @@
+{
+  "name": "@agent-page/mcp",
+  "version": "0.5.0",
+  "description": "Agent Page Protocol MCP server",
+  "type": "module",
+  "bin": {
+    "agent-page-mcp": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@agent-page/client": "file:../client",
+    "@agent-page/tool-core": "file:../tool-core"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "agent-page",
+    "app",
+    "mcp"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@agent-page/example-flights",
+  "version": "0.4.0",
+  "private": true,
+  "description": "APP 1.1 dual-speak flight booking example (v0.4 search/book path intact)",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "prestart": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@agent-page/server": "file:../../packages/server",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>skin harness</title>
+    <link rel="stylesheet" href="/extension/assets/styles.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #0e1115;
+      }
+      #verdict {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        white-space: pre-wrap;
+      }
+      /* document mount appends .app-shell to body AFTER #host; keep #host 0-height
+       when empty so it doesn't push content below the fold (shadow content
+       still gives it height in shadow mode) */
+      #host:empty {
+        height: 0;
+      }
+    </style>
+  </head>
+  <body class="app-view-page">
+    <div id="host"></div>
+    <pre id="verdict"></pre>
+    <script type="module" src="./harness.js"></script>
+  </body>
+</html>

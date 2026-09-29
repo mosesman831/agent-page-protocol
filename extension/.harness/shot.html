@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>skin shot</title>
+    <link rel="stylesheet" href="/extension/assets/styles.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #0e1115;
+      }
+    </style>
+  </head>
+  <body class="app-view-page">
+    <div id="host"></div>
+    <script type="module">
+      import { AppRenderer } from '/extension/renderer/render-root.js';
+      const q = new URLSearchParams(location.search);
+      const manifestUrl = q.get('m') || './fixtures/store.json';
+      const manifest = await (await fetch(manifestUrl)).json();
+      const send = async () => ({ ok: true });
+      const renderer = new AppRenderer({
+        root: document,
+        origin: location.origin,
+        url: manifest.page?.url || location.origin,
+        settings: {},
+        send,
+      });
+      renderer.mount();
+      renderer.setManifest(manifest, manifest.page?.version || 'shot-1');
+      await document.fonts.ready;
+      window.__shot_ready = true;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "app-chrome-extension",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent Page Protocol Chrome Extension MV3 renderer v0.5 (no build step)."
+}

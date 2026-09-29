@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hold.json",
+  "title": "Hold object (logical value; wire form is object StateNode in state or error.details)",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "verify_url",
+    "ttl_ms",
+    "who",
+    "agent_solvable",
+    "issued_count"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 8, "maxLength": 128 },
+    "kind": { "enum": ["captcha", "webview", "liveness", "tos"] },
+    "status": { "enum": ["pending", "cleared", "expired", "failed"] },
+    "verify_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "widget_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "resume_action": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "ttl_ms": { "type": "integer", "minimum": 60000, "maximum": 900000 },
+    "who": { "const": "human" },
+    "agent_solvable": { "const": false },
+    "issued_count": { "type": "integer", "minimum": 1 },
+    "token": { "type": "string", "maxLength": 256 }
+  }
+}

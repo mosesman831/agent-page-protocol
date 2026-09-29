@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event.json",
+  "title": "Event Record",
+  "type": "object",
+  "required": ["app", "event"],
+  "additionalProperties": false,
+  "properties": {
+    "app": { "enum": ["1.0", "1.1"] },
+    "event": {
+      "type": "object",
+      "required": ["id", "type", "page_id", "page_url", "version", "occurred_at", "hint"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "type": {
+          "enum": [
+            "state.changed",
+            "page.replaced",
+            "action.completed",
+            "session.expired",
+            "hold.cleared",
+            "challenge.updated",
+            "order.updated",
+            "consent.changed",
+            "heartbeat"
+          ]
+        },
+        "page_id": { "type": "string" },
+        "page_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "base_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "hint": { "enum": ["revalidate", "diff", "drop"] },
+        "diff": {
+          "oneOf": [{ "type": "null" }, { "$ref": "diff-document.json" }]
+        },
+        "pointers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "type": "string", "pattern": "^/state" }
+        }
+      }
+    }
+  }
+}

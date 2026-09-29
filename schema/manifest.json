@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "page-manifest.json",
+  "type": "object",
+  "required": ["app", "page", "state"],
+  "properties": {
+    "app": { "enum": ["1.0", "1.1"] },
+    "page": {
+      "type": "object",
+      "required": ["id", "url", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,127}$" },
+        "url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "etag": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "language": { "type": "string", "minLength": 2, "maxLength": 35 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "IANA time zone for naive display (1.1). Omit on 1.0."
+        },
+        "focus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^/",
+          "description": "JSON Pointer deep focus (1.1). Omit on 1.0."
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "maxProperties": 512,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "additionalProperties": { "$ref": "state-node.json" }
+    },
+    "actions": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "additionalProperties": { "$ref": "action-def.json" }
+    },
+    "navigation": { "$ref": "navigation.json" },
+    "present": { "$ref": "present.json" },
+    "error": { "$ref": "soft-error.json" },
+    "meta": { "type": "object" }
+  },
+  "additionalProperties": true
+}

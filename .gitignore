@@ -1,0 +1,20 @@
+node_modules/
+dist/
+coverage/
+.env
+.vscode/
+.idea/
+*.log
+.DS_Store
+# Specs, design prompts and the spec-generation archive are private — they
+# live in mosesman831/APP-specs and are cloned into docs/specs/ locally
+# (see deploy README / environment blueprint).
+# The root-scoped rules guard against stray copies at the top level.
+/docs/specs/
+/docs/prompts/
+/docs/archive/
+/SPEC-*.md
+/.devin-prompt-*.md
+.devin-ref/
+.vercel
+.env*

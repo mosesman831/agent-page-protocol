@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "action-def.json",
+  "type": "object",
+  "required": ["description", "kind"],
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "kind": {
+      "enum": ["query", "mutate", "navigate", "confirm", "delegate"]
+    },
+    "input": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/param"
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state_diff": {
+          "type": "boolean"
+        },
+        "changes": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          }
+        },
+        "navigates_to": {
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "delegates_to": {
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "delegate_protocol": {
+          "enum": ["app", "https", null]
+        },
+        "resume_url": {
+          "type": ["string", "null"],
+          "maxLength": 2048
+        }
+      }
+    },
+    "side_effect": {
+      "enum": ["safe", "destructive", "financial", "identity"]
+    },
+    "requires_confirmation": {
+      "type": "boolean"
+    },
+    "idempotent": {
+      "type": "boolean"
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 120000
+    },
+    "auth": {
+      "enum": ["none", "session", "bearer", "api_key", "user"]
+    },
+    "action_url": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
+    "param_mode": {
+      "enum": ["strict", "lenient"]
+    },
+    "requires_etag_match": {
+      "type": "boolean"
+    },
+    "rate_limit": {
+      "type": "object",
+      "required": ["limit", "window_seconds"],
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "window_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        }
+      }
+    },
+    "confirm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "body_template": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "amount_path": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.]{0,255}$"
+        }
+      }
+    },
+    "bulk": {
+      "type": "object",
+      "required": ["max_items", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "mode": {
+          "enum": ["all_or_nothing", "best_effort"]
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "scopes": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "max_financial": {
+          "type": "object"
+        },
+        "pii_params": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "secret_params": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        },
+        "consent_purposes": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "step_up": {
+          "type": "boolean"
+        },
+        "accept_mime": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "max_upload_bytes": {
+          "type": "integer"
+        },
+        "key_header": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "async": {
+      "type": "boolean",
+      "description": "When true, the action MAY return 202 + operation_status polling (Form D, SPEC-v0.4 \u00a76.9)."
+    }
+  },
+  "$defs": {
+    "param": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "date",
+            "datetime",
+            "enum",
+            "array",
+            "object",
+            "geopoint",
+            "file",
+            "date_range",
+            "datetime_range",
+            "quantity",
+            "money"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "default": true,
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "min_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "min_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "option_labels": {
+          "type": "object",
+          "maxProperties": 256
+        },
+        "options_source": {
+          "$ref": "#/$defs/optionsSource"
+        },
+        "item_type": {
+          "$ref": "#/$defs/param"
+        },
+        "properties": {
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/param"
+          }
+        },
+        "example": true,
+        "upload": {
+          "type": "boolean"
+        },
+        "collection_format": {
+          "const": "csv"
+        },
+        "transfer": {
+          "enum": ["multipart", "presign", "either"]
+        },
+        "accept_mime": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 127
+          }
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 26214400
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "max_span_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_accuracy_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "units": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[A-Za-z0-9_/%]+$"
+          }
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[A-Za-z0-9_/%]+$"
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      }
+    },
+    "optionsSource": {
+      "type": "object",
+      "required": ["action", "param", "results_path"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "param": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "results_path": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "min_query_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "debounce_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "item_value": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "item_label": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}

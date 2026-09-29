@@ -1,0 +1,114 @@
+{
+  "app": "1.1",
+  "page": {
+    "id": "lab_webnodes",
+    "url": "http://127.0.0.1:8765/app/lab/webnodes",
+    "title": "Web-app element nodes (SPEC-WEB-NODES)",
+    "version": "webnodes-1",
+    "language": "en-GB",
+    "description": "APP protocol lab feature page"
+  },
+  "state": {
+    "map_embed": {
+      "type": "embed",
+      "url": "https://maps.example.com/embed/lhr",
+      "description": "Terminal map centered on LHR T5 (agents: this is an opaque iframe; the description is the legible summary)",
+      "label": "Terminal map",
+      "sandbox": ["scripts", "same-origin"],
+      "height": 280
+    },
+    "notes": {
+      "type": "markdown",
+      "value": "## Check-in notes\n\n- **Bag drop** closes *45 min* before departure\n- Show your [booking ref](https://example.com/eticket)\n\n```\nPNR = T3KL9X\n```",
+      "label": "Markdown"
+    },
+    "gallery": {
+      "type": "media",
+      "value": [
+        {
+          "url": "https://cdn.example.com/img/cabin-a380.jpg",
+          "alt": "A380 business cabin",
+          "kind": "image"
+        },
+        {
+          "url": "https://cdn.example.com/vid/boarding.mp4",
+          "alt": "Boarding clip",
+          "kind": "video"
+        }
+      ],
+      "label": "Gallery"
+    },
+    "categories": {
+      "type": "tree",
+      "value": [
+        {
+          "id": "travel",
+          "label": "Travel",
+          "children": [
+            { "id": "flights", "label": "Flights" },
+            { "id": "hotels", "label": "Hotels" }
+          ]
+        },
+        { "id": "extras", "label": "Extras", "children": [{ "id": "bags", "label": "Bags" }] }
+      ],
+      "label": "Categories"
+    },
+    "events": {
+      "type": "array",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "date": { "type": "string", "value": "2026-10-02" },
+            "label": { "type": "string", "value": "Web check-in opens" }
+          },
+          "label": "ev1"
+        },
+        {
+          "type": "object",
+          "value": {
+            "date": { "type": "string", "value": "2026-10-04" },
+            "label": { "type": "string", "value": "Departure LHR→JFK" }
+          },
+          "label": "ev2"
+        }
+      ],
+      "label": "Trip calendar"
+    },
+    "step": { "type": "number", "value": 2, "label": "Checkout step", "min": 1, "max": 4 }
+  },
+  "present": {
+    "layout": "detail",
+    "sections": [
+      {
+        "id": "s_map_embed",
+        "label": "Embed (opaque to agents; description is the legible part)",
+        "layout": "detail",
+        "state_path": "map_embed"
+      },
+      { "id": "s_notes", "label": "Markdown", "layout": "detail", "state_path": "notes" },
+      { "id": "s_gallery", "label": "Media", "layout": "detail", "state_path": "gallery" },
+      { "id": "s_categories", "label": "Tree", "layout": "detail", "state_path": "categories" },
+      { "id": "f_home", "label": "Action: home", "layout": "form", "primary_action": "home" }
+    ],
+    "components": {
+      "gallery_grid": { "type": "gallery", "state_path": "gallery", "label": "Cabin gallery" },
+      "trip_cal": { "type": "calendar", "state_path": "events", "label": "Trip calendar" },
+      "checkout_steps": { "type": "stepper", "state_path": "step", "label": "Checkout progress" }
+    }
+  },
+  "actions": {
+    "home": {
+      "description": "Back to lab home",
+      "kind": "navigate",
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000,
+      "input": {},
+      "output": { "navigates_to": "http://127.0.0.1:8765/app/lab/home" }
+    }
+  },
+  "navigation": {
+    "breadcrumb": [{ "label": "Protocol Lab", "url": "http://127.0.0.1:8765/app/lab/home" }]
+  }
+}

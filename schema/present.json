@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "present.json",
+  "description": "Presentation hints (SPEC \u00a713). Agents MUST ignore this block; renderers fall back to a tree view when absent. Forbidden anywhere inside: javascript: URLs, inline event handlers, remote script tags, data: HTML documents.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "layout": {
+      "$ref": "#/$defs/layout"
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "palette": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": "CSS color values; index 0=bg, 1=surface, 2=accent."
+        },
+        "dark": {
+          "type": "boolean"
+        },
+        "font_display": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "font_body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/section"
+      }
+    },
+    "components": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/componentHint"
+      }
+    },
+    "a11y": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "page_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "live_region": {
+          "enum": ["polite", "assertive", "off"]
+        }
+      }
+    },
+    "responsive": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "breakpoints": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "xs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "md": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lg": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "xl": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "layout": {
+      "type": "string",
+      "enum": ["list", "grid", "detail", "form", "dashboard", "chat", "table", "card"],
+      "description": "Root/section layout. Unknown values fall back to 'list' at render time; authors SHOULD use these."
+    },
+    "dotPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$",
+      "description": "Dot path resolved from the /state root, e.g. 'results' or 'flight.segments'."
+    },
+    "actionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "section": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "state_path": {
+          "$ref": "#/$defs/dotPath"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "columns": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": ["key"],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "format": {
+                "enum": ["number", "currency", "date", "datetime", "percent", "duration_min"]
+              },
+              "align": {
+                "enum": ["left", "center", "right"]
+              },
+              "width": {
+                "type": "string",
+                "maxLength": 32,
+                "description": "CSS length or fr unit string."
+              }
+            }
+          }
+        },
+        "sortable_by": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "filterable_by": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "primary_action": {
+          "$ref": "#/$defs/actionId"
+        },
+        "item_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "item_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "empty_message": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "componentHint": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "input",
+            "textarea",
+            "button",
+            "select",
+            "slider",
+            "toggle",
+            "checkbox_group",
+            "radio_group",
+            "datepicker",
+            "datetimepicker",
+            "table",
+            "card",
+            "chart",
+            "image",
+            "link",
+            "banner",
+            "tabs",
+            "breadcrumbs",
+            "spinner",
+            "price",
+            "badge",
+            "hidden",
+            "order",
+            "geopoint",
+            "otp",
+            "challenge",
+            "consent",
+            "gallery",
+            "calendar",
+            "stepper"
+          ]
+        },
+        "action_id": {
+          "$ref": "#/$defs/actionId"
+        },
+        "param": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Param key the component binds to inside action_id's input map."
+        },
+        "state_path": {
+          "$ref": "#/$defs/dotPath"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "variant": {
+          "enum": ["primary", "secondary", "danger", "ghost"]
+        },
+        "param_map": {
+          "type": "object",
+          "description": "Renames submitted keys {client_param_key: server_param_key}.",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "chart_kind": {
+          "enum": ["line", "bar", "pie"]
+        },
+        "tabs": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "required": ["label", "section"],
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "section": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "app": "1.1",
+  "x_vendor": { "partner": "grok-demo", "notes": "kept for V-SKIN-6" },
+  "page": {
+    "id": "skin-extras",
+    "url": "http://127.0.0.1:8765/harness/extras",
+    "title": "Demo Store - Extras",
+    "version": "x-1"
+  },
+  "state": {
+    "currency": { "type": "string", "value": "GBP" },
+    "price_scale": { "type": "number", "value": 2 },
+    "products": {
+      "type": "array",
+      "label": "Flights",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-001" },
+            "title": { "type": "string", "value": "London -> Dubai" },
+            "image": {
+              "type": "string",
+              "value": "http://127.0.0.1:8765/extension/assets/img/dxb.jpg"
+            },
+            "price": { "type": "number", "value": 84500, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "08:40" },
+            "arrival": { "type": "string", "value": "19:25" }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-002" },
+            "title": { "type": "string", "value": "London -> Dubai" },
+            "price": { "type": "number", "value": 64000, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" },
+            "departure": { "type": "string", "value": "10:15" },
+            "arrival": { "type": "string", "value": "21:00" }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-010" },
+            "title": {
+              "type": "string",
+              "value": "London -> New York via an extremely roundabout scenic routing that keeps going and going past every sensible waypoint until this title reaches a full three hundred characters of absolutely unreasonable length for a product card that still must not overflow its box"
+            },
+            "image": 5,
+            "price": { "type": "number", "value": 38900, "scale": 2 },
+            "status": "back_ordered",
+            "badge": { "type": "string", "value": "<img src=x onerror=alert(1)>" },
+            "rating": { "type": "number", "value": 4.5 },
+            "meta": { "type": "object", "value": { "a": { "type": "string", "value": "b" } } },
+            "airline": { "type": "string", "value": "Demo Air" }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "fl-020" },
+            "title": { "type": "string", "value": "London -> Singapore" },
+            "image": {
+              "type": "string",
+              "value": "http://127.0.0.1:8765/extension/assets/img/sin.jpg"
+            },
+            "price": { "type": "number", "value": 91200, "unit": "GBP", "scale": 2 },
+            "status": {
+              "type": "enum",
+              "value": "in_stock",
+              "options": ["in_stock", "offer", "unavailable"]
+            },
+            "airline": { "type": "string", "value": "Demo Air" }
+          }
+        }
+      ]
+    },
+    "results": {
+      "type": "table",
+      "item_label": "flight",
+      "fields": {
+        "id": "string",
+        "airline": "string",
+        "flight_no": "string",
+        "departure": "string",
+        "arrival": "string",
+        "duration": "number",
+        "price": "number",
+        "stops": "number",
+        "seats_left": "number"
+      },
+      "value": [
+        ["fl-001", "Demo Air", "DA101", "08:40", "19:25", 525, 84500, 0, 9],
+        ["fl-002", "Demo Air", "DA105", "10:15", "21:00", 525, 64000, 0, 4]
+      ],
+      "pagination": { "cursor": null, "has_more": false, "total": 2 }
+    },
+    "more": {
+      "type": "array",
+      "label": "More",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "x-1" },
+            "title": { "type": "string", "value": "Seat upgrade" }
+          }
+        },
+        {
+          "type": "object",
+          "value": {
+            "id": { "type": "string", "value": "x-2" },
+            "title": { "type": "string", "value": "Lounge pass" }
+          }
+        }
+      ]
+    }
+  },
+  "present": {
+    "layout": "list",
+    "sections": [
+      {
+        "id": "flights",
+        "state_path": "products",
+        "layout": "grid",
+        "item_key": "id",
+        "primary_action": "select_fare",
+        "label": "Flights"
+      },
+      {
+        "id": "carousel",
+        "state_path": "more",
+        "layout": "carousel",
+        "label": "More options"
+      },
+      {
+        "id": "results",
+        "state_path": "results",
+        "layout": "table",
+        "item_key": "id",
+        "primary_action": "select_flight",
+        "columns": [
+          { "key": "airline", "label": "Airline" },
+          { "key": "departure", "label": "Depart" },
+          { "key": "arrival", "label": "Arrive" },
+          { "key": "price", "label": "Price", "format": "currency", "align": "right" },
+          { "key": "stops", "label": "Stops" }
+        ],
+        "label": "Results"
+      }
+    ]
+  },
+  "actions": {
+    "select_fare": {
+      "kind": "mutate",
+      "side_effect": "safe",
+      "description": "Select fare",
+      "input": {},
+      "output": {}
+    },
+    "select_flight": {
+      "kind": "mutate",
+      "side_effect": "safe",
+      "description": "Select flight",
+      "input": {},
+      "output": {}
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "app-protocol-site",
+  "private": true,
+  "version": "0.2.0",
+  "description": "agent-page-protocol.vercel.app — APP launch page (manifest first, HTML backup)",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "site:build": "node build-site.mjs"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.4.0",
+    "@shadergradient/react": "^2.4.20",
+    "next": "^15.5.26",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

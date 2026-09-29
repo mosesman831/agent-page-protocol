@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diff-document.json",
+  "type": "object",
+  "required": ["app", "base", "result_version", "diff"],
+  "additionalProperties": false,
+  "properties": {
+    "app": { "enum": ["1.0", "1.1"] },
+    "base": {
+      "type": "object",
+      "required": ["page_id", "page_url", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "page_id": { "type": "string" },
+        "page_url": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "result_version": { "type": "string" },
+    "diff": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["op", "path"],
+        "additionalProperties": false,
+        "properties": {
+          "op": { "enum": ["add", "remove", "replace", "move", "copy", "test"] },
+          "path": { "type": "string" },
+          "from": { "type": "string" },
+          "value": true
+        }
+      }
+    },
+    "navigation_effect": {
+      "type": ["object", "null"],
+      "required": ["url", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string" },
+        "mode": { "enum": ["push", "replace"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "meta": { "type": "object" }
+  }
+}

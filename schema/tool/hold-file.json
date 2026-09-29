@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool/hold-file.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "kind",
+    "action",
+    "page_url",
+    "page_version",
+    "post_url",
+    "raw_body_b64",
+    "body_sha256",
+    "created_at",
+    "expires_at",
+    "gates"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "agent-page.hold/1.0"
+    },
+    "kind": {
+      "enum": ["confirmation", "mfa", "otp", "human_verification", "consent", "delegate", "auth"]
+    },
+    "action": {
+      "type": "string"
+    },
+    "page_url": {
+      "type": "string"
+    },
+    "page_version": {
+      "type": "string"
+    },
+    "post_url": {
+      "type": "string"
+    },
+    "challenge": {
+      "type": ["string", "null"]
+    },
+    "idempotency_key": {
+      "type": ["string", "null"]
+    },
+    "if_match_version": {
+      "type": ["string", "null"]
+    },
+    "raw_body_b64": {
+      "type": "string"
+    },
+    "body_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "level": {
+      "enum": ["L1", "L2", "L3", "L4"]
+    },
+    "side_effect": {
+      "enum": ["safe", "destructive", "financial", "identity"]
+    },
+    "amount": {
+      "type": ["object", "null"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "status", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": ["challenge", "hold", "consent", "confirmation", "delegate", "auth"]
+          },
+          "status": {
+            "enum": ["pending", "cleared"]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "challenge": {
+            "type": ["string", "null"]
+          },
+          "hold_token": {
+            "type": ["string", "null"]
+          },
+          "grant": {
+            "type": ["array", "null"]
+          }
+        }
+      }
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "body": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "origin": {
+      "type": "string",
+      "format": "uri",
+      "maxLength": 2048
+    },
+    "pii_params": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "maxLength": 128
+      }
+    },
+    "challenge_param": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_]+$"
+    },
+    "delegate": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Off-origin hand-off target (delegates_to); the human completes the flow there."
+        },
+        "protocol": {
+          "enum": ["app", "https"]
+        },
+        "reason": {
+          "type": ["string", "null"],
+          "maxLength": 500
+        },
+        "resume_url": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "Declared same-origin return URL (K3 MF-9); tools prefer it over guessing page.url."
+        }
+      }
+    }
+  }
+}

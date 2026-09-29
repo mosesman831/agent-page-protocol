@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool/cache-entry.json",
+  "type": "object",
+  "required": ["schema", "url", "fetched_at", "ttl_ms", "private", "manifest"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "agent-page.cache/1.0" },
+    "url": { "type": "string" },
+    "etag": { "type": ["string", "null"] },
+    "version": { "type": "string" },
+    "fetched_at": { "type": "integer" },
+    "ttl_ms": { "type": "integer", "minimum": 0 },
+    "private": { "const": false },
+    "cache_control": { "type": ["string", "null"] },
+    "manifest": { "type": "object" }
+  }
+}

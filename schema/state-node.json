@@ -1,0 +1,850 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state-node.json",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/stringNode"
+    },
+    {
+      "$ref": "#/$defs/numberNode"
+    },
+    {
+      "$ref": "#/$defs/boolNode"
+    },
+    {
+      "$ref": "#/$defs/nullNode"
+    },
+    {
+      "$ref": "#/$defs/dateNode"
+    },
+    {
+      "$ref": "#/$defs/datetimeNode"
+    },
+    {
+      "$ref": "#/$defs/enumNode"
+    },
+    {
+      "$ref": "#/$defs/arrayNode"
+    },
+    {
+      "$ref": "#/$defs/objectNode"
+    },
+    {
+      "$ref": "#/$defs/fileNode"
+    },
+    {
+      "$ref": "#/$defs/tableNode"
+    },
+    {
+      "$ref": "#/$defs/geopointNode"
+    },
+    {
+      "$ref": "#/$defs/quantityNode"
+    },
+    {
+      "$ref": "#/$defs/orderNode"
+    },
+    {
+      "$ref": "#/$defs/daterangeNode"
+    },
+    {
+      "$ref": "#/$defs/datetimerangeNode"
+    },
+    {
+      "$ref": "#/$defs/embedNode"
+    },
+    {
+      "$ref": "#/$defs/markdownNode"
+    },
+    {
+      "$ref": "#/$defs/mediaNode"
+    },
+    {
+      "$ref": "#/$defs/treeNode"
+    }
+  ],
+  "$defs": {
+    "nodeBase": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {},
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      }
+    },
+    "stringNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "string"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 65536
+            },
+            "secret": {
+              "type": "boolean"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "numberNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "number"
+            },
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "boolNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "nullNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "const": "null"
+            }
+          },
+          "not": {
+            "required": ["value"]
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "dateNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "date"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "datetimeNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "datetime"
+            },
+            "value": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "enumNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value", "options"],
+          "properties": {
+            "type": {
+              "const": "enum"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "options": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 256,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "option_labels": {
+              "type": "object",
+              "maxProperties": 256,
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "arrayNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "array"
+            },
+            "value": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "$ref": "state-node.json"
+              }
+            },
+            "item_label": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "pagination": {
+              "$ref": "#/$defs/pagination"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "objectNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "object"
+            },
+            "value": {
+              "type": "object",
+              "maxProperties": 512,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "additionalProperties": {
+                "$ref": "state-node.json"
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fileNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "file"
+            },
+            "value": {
+              "type": "object",
+              "required": ["url", "name", "mime"],
+              "additionalProperties": false,
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "pattern": "^[^/\\\\]+$"
+                },
+                "mime": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "tableNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "fields", "value"],
+          "properties": {
+            "type": {
+              "const": "table"
+            },
+            "fields": {
+              "type": "object",
+              "minProperties": 1,
+              "maxProperties": 128,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "additionalProperties": {
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "date",
+                  "datetime",
+                  "enum",
+                  "file",
+                  "null",
+                  "any",
+                  "geopoint",
+                  "quantity",
+                  "daterange",
+                  "datetimerange"
+                ]
+              }
+            },
+            "value": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "type": "array",
+                "maxItems": 128
+              }
+            },
+            "item_label": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "pagination": {
+              "$ref": "#/$defs/pagination"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "geopoint": {
+      "type": "object",
+      "required": ["lat", "lng"],
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "accuracy_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "quantity": {
+      "type": "object",
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[A-Za-z0-9_/%]+$"
+        }
+      }
+    },
+    "order": {
+      "type": "object",
+      "required": ["id", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "pending",
+            "awaiting_payment",
+            "awaiting_3ds",
+            "paid",
+            "fulfilling",
+            "shipped",
+            "delivered",
+            "cancel_pending",
+            "cancelled",
+            "refund_pending",
+            "refunded",
+            "failed"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "total": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "required": ["sku", "qty", "amount"],
+            "additionalProperties": false,
+            "properties": {
+              "sku": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "qty": {
+                "type": "number"
+              },
+              "amount": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "unpaid",
+                "requires_action",
+                "processing",
+                "succeeded",
+                "failed",
+                "cancelled"
+              ]
+            },
+            "psp": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "start_url": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "extra": {
+          "type": "object",
+          "maxProperties": 8,
+          "additionalProperties": {
+            "type": ["string", "number", "boolean", "null"]
+          }
+        }
+      }
+    },
+    "daterange": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "to": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      }
+    },
+    "datetimerange": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "to": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "geopointNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "geopoint"
+            },
+            "value": {
+              "$ref": "#/$defs/geopoint"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "quantityNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "quantity"
+            },
+            "value": {
+              "$ref": "#/$defs/quantity"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "orderNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "order"
+            },
+            "value": {
+              "$ref": "#/$defs/order"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "daterangeNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "daterange"
+            },
+            "value": {
+              "$ref": "#/$defs/daterange"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "datetimerangeNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "datetimerange"
+            },
+            "value": {
+              "$ref": "#/$defs/datetimerange"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["cursor", "has_more", "total"],
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "total": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      }
+    },
+    "httpsUrl": {
+      "type": "string",
+      "pattern": "^https://",
+      "maxLength": 2048
+    },
+    "embedNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "url", "description"],
+          "properties": {
+            "type": {
+              "const": "embed"
+            },
+            "url": {
+              "$ref": "#/$defs/httpsUrl"
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "sandbox": {
+              "type": "array",
+              "items": {
+                "enum": ["scripts", "forms", "popups", "same-origin"]
+              },
+              "uniqueItems": true
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 16,
+              "maximum": 2000
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "markdownNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "markdown"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 65536
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "mediaItem": {
+      "type": "object",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "alt": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": ["image", "video", "audio"]
+        }
+      }
+    },
+    "mediaNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "media"
+            },
+            "value": {
+              "type": "array",
+              "maxItems": 256,
+              "items": {
+                "$ref": "#/$defs/mediaItem"
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "treeItem": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,64}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "children": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/treeItem"
+          }
+        }
+      }
+    },
+    "treeNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": {
+              "const": "tree"
+            },
+            "value": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "$ref": "#/$defs/treeItem"
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge.json",
+  "title": "Challenge object (logical value; wire form is object StateNode in state or error.details)",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "channel",
+    "expires_at",
+    "ttl_ms",
+    "attempts_remaining",
+    "max_attempts",
+    "param"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "kind": {
+      "enum": ["otp", "totp", "webauthn", "magic_link", "password", "backup_code", "push"]
+    },
+    "channel": {
+      "enum": ["sms", "email", "totp", "authenticator_push", "passkey", "backup_code", "voice"]
+    },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "ttl_ms": { "type": "integer", "minimum": 30000, "maximum": 600000 },
+    "attempts_remaining": { "type": "integer", "minimum": 0 },
+    "max_attempts": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "mask": { "type": "string", "maxLength": 200 },
+    "length": { "type": "integer", "minimum": 4, "maximum": 12 },
+    "pattern": { "type": "string", "maxLength": 512 },
+    "param": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+    "resend_available_at": { "type": "string", "format": "date-time" },
+    "resend_action": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+    "public_key": { "type": "object" },
+    "poll_interval_ms": { "type": "integer", "minimum": 1000 }
+  }
+}

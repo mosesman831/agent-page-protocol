@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "features.json",
+  "title": "Feature flags (logical booleans; wire form is object of boolean StateNodes)",
+  "type": "object",
+  "additionalProperties": {
+    "type": "boolean"
+  },
+  "propertyNames": {
+    "pattern": "^([a-z][a-z0-9_]{0,63}|x_[a-z0-9_]+)$"
+  },
+  "properties": {
+    "identity_flows": { "type": "boolean" },
+    "mfa": { "type": "boolean" },
+    "passkey": { "type": "boolean" },
+    "oauth": { "type": "boolean" },
+    "magic_link": { "type": "boolean" },
+    "human_hold": { "type": "boolean" },
+    "consent": { "type": "boolean" },
+    "events_sse": { "type": "boolean" },
+    "events_longpoll": { "type": "boolean" },
+    "events_ws": { "type": "boolean" },
+    "session_resume": { "type": "boolean" },
+    "typeahead": { "type": "boolean" },
+    "file_presign": { "type": "boolean" },
+    "geopoint": { "type": "boolean" },
+    "quantity": { "type": "boolean" },
+    "datetime_range": { "type": "boolean" },
+    "bulk_actions": { "type": "boolean" },
+    "commerce": { "type": "boolean" },
+    "order_state": { "type": "boolean" },
+    "deep_focus": { "type": "boolean" },
+    "locale_tz": { "type": "boolean" },
+    "error_i18n": { "type": "boolean" },
+    "action_result_pagination": { "type": "boolean" },
+    "drafts": { "type": "boolean" }
+  }
+}

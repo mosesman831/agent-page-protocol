@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Agent Page Protocol Renderer",
+  "version": "0.5.0",
+  "description": "Renders Agent Page Protocol (APP) v0.5 / 1.1 manifests as a first-party client: same-origin content-script bridge when possible, extension-shell fallback with Origin-stripped action POSTs (§10.2.1 / §14 / §24).",
+  "permissions": ["storage", "scripting", "webNavigation", "declarativeNetRequest"],
+  "optional_permissions": ["declarativeNetRequestWithHostAccess"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*", "https://*/*"],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "http://127.0.0.1/*", "https://*/*"],
+      "js": ["content/content-script.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "APP Renderer",
+    "default_popup": "ui/popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "renderer/*",
+        "renderer/components/*",
+        "assets/*",
+        "protocol/*",
+        "ui/*",
+        "content/injector.js",
+        "content/events.js"
+      ],
+      "matches": ["http://localhost/*", "http://127.0.0.1/*", "https://*/*"]
+    }
+  ]
+}

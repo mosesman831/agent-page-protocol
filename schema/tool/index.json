@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool/index.json",
+  "type": "object",
+  "required": ["schema", "current", "sessions", "home_version"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "agent-page.index/1.0" },
+    "current": { "type": ["string", "null"], "pattern": "^ses_[A-Za-z0-9_-]{8,128}$" },
+    "sessions": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "type": "string", "pattern": "^ses_[A-Za-z0-9_-]{8,128}$" }
+    },
+    "home_version": { "const": "1.0" }
+  }
+}

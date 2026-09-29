@@ -1,0 +1,62 @@
+{
+  "app": "1.1",
+  "page": {
+    "id": "well-known",
+    "url": "https://agent-page-protocol.vercel.app/.well-known/agent-page",
+    "title": "Agent Page Protocol — discovery",
+    "version": "wk-1"
+  },
+  "state": {
+    "site_name": {
+      "type": "string",
+      "value": "Agent Page Protocol"
+    },
+    "site_type": {
+      "type": "string",
+      "value": "landing"
+    },
+    "protocol_version": {
+      "type": "string",
+      "value": "1.1"
+    },
+    "capabilities": {
+      "type": "array",
+      "value": [
+        {
+          "type": "string",
+          "value": "manifest"
+        },
+        {
+          "type": "string",
+          "value": "navigate"
+        },
+        {
+          "type": "string",
+          "value": "present"
+        }
+      ]
+    },
+    "entry_urls": {
+      "type": "object",
+      "value": {
+        "home_manifest": {
+          "type": "string",
+          "value": "https://agent-page-protocol.vercel.app/manifest.app.json"
+        },
+        "home_html": {
+          "type": "string",
+          "value": "https://agent-page-protocol.vercel.app/html"
+        },
+        "demos": {
+          "type": "string",
+          "value": "https://demo-flight-app.vercel.app/"
+        },
+        "repo": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol"
+        }
+      },
+      "label": "Entry URLs"
+    }
+  }
+}

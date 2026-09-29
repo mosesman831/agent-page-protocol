@@ -1,0 +1,33 @@
+{
+  "name": "@agent-page/cli",
+  "version": "0.5.0",
+  "type": "module",
+  "bin": {
+    "agent-page": "./dist/bin.js",
+    "apage": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@agent-page/client": "file:../client",
+    "@agent-page/tool-core": "file:../tool-core"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "license": "MIT"
+}

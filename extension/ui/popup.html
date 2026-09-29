@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>APP Renderer</title>
+    <style>
+      :root {
+        --bg: #0f1419;
+        --fg: #e8eef2;
+        --muted: #8b9aab;
+        --accent: #3d8bfd;
+        --border: #243041;
+        --danger: #e35d6a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+        font:
+          13px/1.45 'Source Sans 3',
+          'Segoe UI',
+          system-ui,
+          sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        padding: 14px 16px 16px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 14px;
+        word-break: break-all;
+      }
+      .row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--border);
+      }
+      .row:last-child {
+        border-bottom: 1px solid var(--border);
+      }
+      .label {
+        font-weight: 600;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .switch {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: #2a3544;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .slider::before {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.15s;
+      }
+      input:checked + .slider {
+        background: var(--accent);
+      }
+      input:checked + .slider::before {
+        transform: translateX(18px);
+      }
+      input:disabled + .slider {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      footer {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Agent Page Protocol</h1>
+    <p class="sub" id="origin-label">Loading…</p>
+
+    <div class="row">
+      <div>
+        <div class="label">Render APP pages</div>
+        <div class="hint">Redirect APP Content-Type navigations to the extension viewer</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="render-toggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Accept rewriting</div>
+        <div class="hint">Prefer APP media types on this origin (DNR)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="accept-toggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Always ask to confirm</div>
+        <div class="hint">Upgrade safe actions to confirmation (L4)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="always-ask" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Reduced motion</div>
+        <div class="hint">Disable non-essential animation</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="reduced-motion" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <footer>APP Renderer v0.4.0 · settings sync via chrome.storage.sync</footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

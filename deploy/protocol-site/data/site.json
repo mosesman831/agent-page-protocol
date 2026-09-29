@@ -1,0 +1,715 @@
+{
+  "app": "1.1",
+  "page": {
+    "id": "app_home",
+    "url": "https://agent-page-protocol.vercel.app/",
+    "title": "Agent Page Protocol",
+    "version": "app-landing-1",
+    "language": "en"
+  },
+  "state": {
+    "headline": {
+      "type": "string",
+      "value": "Web pages as JSON manifests — agents read them, humans see them rendered.",
+      "label": "Agent Page Protocol"
+    },
+    "about": {
+      "type": "markdown",
+      "value": "**APP** replaces HTML/DOM as the unit a page serves.\n\n- `GET` a page → a **page manifest**: typed state nodes, declared actions, presentation hints.\n- `POST` an action → the next manifest or an RFC 6902 **diff** document.\n- One document, two readers: the Chrome extension renders manifests for humans; agents drive the same documents via MCP, CLI or SDK.\n\nCanonical manifest URL: [/manifest.app.json](https://agent-page-protocol.vercel.app/manifest.app.json)",
+      "label": "What it is"
+    },
+    "for_humans": {
+      "type": "markdown",
+      "value": "No extension? The HTML edition lives at [/html](https://agent-page-protocol.vercel.app/html). Get the renderer at [app-extension.zip](https://agent-page-protocol.vercel.app/app-extension.zip) — unzip, chrome://extensions, Developer mode, Load unpacked. With the extension installed, every APP page renders as a normal site.",
+      "label": "For humans"
+    },
+    "for_agents": {
+      "type": "markdown",
+      "value": "Ingest this page as APP: `GET https://agent-page-protocol.vercel.app/manifest.app.json` with header `Accept: application/vnd.agent-page+json`. Actions post `application/vnd.agent-page-action+json` to `action_url`. Capabilities are advertised at `/.well-known/agent-page`.",
+      "label": "For agents"
+    },
+    "demos": {
+      "type": "object",
+      "value": {
+        "flight_booking": {
+          "type": "string",
+          "value": "https://demo-flight-app.vercel.app/app/ba/home",
+          "label": "British Airways booking"
+        },
+        "hotel_booking": {
+          "type": "string",
+          "value": "https://demo-hotel-app-eta.vercel.app/app/hotel/search",
+          "label": "Hotel booking"
+        },
+        "classroom": {
+          "type": "string",
+          "value": "https://demo-classroom-app.vercel.app/app/gc/home",
+          "label": "Classroom"
+        },
+        "protocol_lab": {
+          "type": "string",
+          "value": "https://demo-lab-app.vercel.app/app/lab/home",
+          "label": "Feature lab"
+        }
+      },
+      "label": "Live demos"
+    },
+    "connect": {
+      "type": "object",
+      "value": {
+        "mcp_server": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/packages/mcp",
+          "label": "MCP server (stdio) — app_read/app_act/app_events"
+        },
+        "agent_cli": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/packages/cli",
+          "label": "Agent CLI (state-driven commands)"
+        },
+        "ts_client": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/packages/client",
+          "label": "TypeScript client SDK"
+        },
+        "ingest_one_liner": {
+          "type": "string",
+          "value": "curl -H 'Accept: application/vnd.agent-page+json' https://agent-page-protocol.vercel.app/",
+          "label": "Ingest this page in one line"
+        }
+      },
+      "label": "Connect an agent"
+    },
+    "benefits": {
+      "type": "array",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "~100x smaller pages"
+            },
+            "detail": {
+              "type": "string",
+              "value": "328 KB of HTML + JS/CSS vs a 3.3 KB manifest for identical content"
+            }
+          },
+          "label": "b_100x_smaller_pages"
+        },
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "Typed values"
+            },
+            "detail": {
+              "type": "string",
+              "value": "price = { type:'number', scale:2, unit:'GBP' } — no scraping, no inference"
+            }
+          },
+          "label": "b_Typed_values"
+        },
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "Declared actions"
+            },
+            "detail": {
+              "type": "string",
+              "value": "every action ships an input schema — zero guessing what a button does"
+            }
+          },
+          "label": "b_Declared_actions"
+        },
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "Diff updates"
+            },
+            "detail": {
+              "type": "string",
+              "value": "RFC 6902 JSON Patch deltas — ~89% fewer bytes than re-fetching"
+            }
+          },
+          "label": "b_Diff_updates"
+        },
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "Safe by default"
+            },
+            "detail": {
+              "type": "string",
+              "value": "idempotency keys, version pinning, confirmation challenges, delegated OAuth scopes"
+            }
+          },
+          "label": "b_Safe_by_default"
+        },
+        {
+          "type": "object",
+          "value": {
+            "benefit": {
+              "type": "string",
+              "value": "Humans included"
+            },
+            "detail": {
+              "type": "string",
+              "value": "the same manifest renders as a real site via the Chrome MV3 extension"
+            }
+          },
+          "label": "b_Humans_included"
+        }
+      ],
+      "label": "Why APP"
+    },
+    "benchmarks": {
+      "type": "array",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Page transfer"
+            },
+            "html": {
+              "type": "string",
+              "value": "~328 KB HTML+assets"
+            },
+            "app": {
+              "type": "string",
+              "value": "3.3 KB manifest"
+            },
+            "note": {
+              "type": "string",
+              "value": "~100x smaller, same content"
+            }
+          },
+          "label": "m_Page_transfer"
+        },
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Full booking flow"
+            },
+            "html": {
+              "type": "string",
+              "value": "40+ DOM interactions"
+            },
+            "app": {
+              "type": "string",
+              "value": "7 protocol round trips"
+            },
+            "note": {
+              "type": "string",
+              "value": "search→filter→select→book→confirm"
+            }
+          },
+          "label": "m_Full_booking_flow"
+        },
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Tokens per page"
+            },
+            "html": {
+              "type": "string",
+              "value": "~891 (doc only)"
+            },
+            "app": {
+              "type": "string",
+              "value": "~833"
+            },
+            "note": {
+              "type": "string",
+              "value": "doc parity — transfer is the win"
+            }
+          },
+          "label": "m_Tokens_per_page"
+        },
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Sequential updates"
+            },
+            "html": {
+              "type": "string",
+              "value": "full re-fetch each step"
+            },
+            "app": {
+              "type": "string",
+              "value": "88.9% bytes saved"
+            },
+            "note": {
+              "type": "string",
+              "value": "10 diffs (3.7 KB) vs 10 re-fetches (33.3 KB)"
+            }
+          },
+          "label": "m_Sequential_updates"
+        },
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Cache revalidation"
+            },
+            "html": {
+              "type": "string",
+              "value": "—"
+            },
+            "app": {
+              "type": "string",
+              "value": "0-byte body"
+            },
+            "note": {
+              "type": "string",
+              "value": "ETag → 304, measured"
+            }
+          },
+          "label": "m_Cache_revalidation"
+        },
+        {
+          "type": "object",
+          "value": {
+            "metric": {
+              "type": "string",
+              "value": "Flow latency (p50)"
+            },
+            "html": {
+              "type": "string",
+              "value": "—"
+            },
+            "app": {
+              "type": "string",
+              "value": "~6.6 ms"
+            },
+            "note": {
+              "type": "string",
+              "value": "sum of step p50s, localhost"
+            }
+          },
+          "label": "m_Flow_latency_p50_"
+        }
+      ],
+      "label": "Benchmarks — same content in both representations"
+    },
+    "schemas": {
+      "type": "object",
+      "value": {
+        "page_manifest": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/manifest.json",
+          "label": "page manifest"
+        },
+        "state_node": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/state-node.json",
+          "label": "state node (20 kinds)"
+        },
+        "action_def": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/action-def.json",
+          "label": "action definition"
+        },
+        "action_request": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/action-request.json",
+          "label": "action request"
+        },
+        "diff_document": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/diff-document.json",
+          "label": "diff document (RFC 6902)"
+        },
+        "error_envelope": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/schema/error-envelope.json",
+          "label": "error envelope"
+        },
+        "spec": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/APP-specs/blob/main/SPEC.md",
+          "label": "protocol spec (private repo)"
+        }
+      },
+      "label": "Manifest schemas & spec"
+    },
+    "links": {
+      "type": "object",
+      "value": {
+        "github": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol",
+          "label": "Repository"
+        },
+        "docs": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/docs",
+          "label": "Docs"
+        },
+        "benchmarks_source": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/benchmarks",
+          "label": "Benchmark methodology"
+        },
+        "extension": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/tree/main/extension",
+          "label": "Chrome extension source"
+        },
+        "extension_download": {
+          "type": "string",
+          "value": "https://agent-page-protocol.vercel.app/app-extension.zip",
+          "label": "Chrome extension (zip, v0.5)"
+        }
+      },
+      "label": "Links"
+    },
+    "protocol_surface": {
+      "type": "array",
+      "value": [
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "document"
+            },
+            "what": {
+              "type": "string",
+              "value": "typed state nodes (20 kinds), present hints, navigation"
+            }
+          },
+          "label": "document_typed_state_nodes_20_kinds_pres"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "document"
+            },
+            "what": {
+              "type": "string",
+              "value": "conditional GET + watch + ETag"
+            }
+          },
+          "label": "document_conditional_GET_watch_ETag"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "action"
+            },
+            "what": {
+              "type": "string",
+              "value": "idempotency keys, version pinning, confirmation challenges"
+            }
+          },
+          "label": "action_idempotency_keys_version_pinning_"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "action"
+            },
+            "what": {
+              "type": "string",
+              "value": "diff responses (RFC 6902), async 202 jobs, bulk ops"
+            }
+          },
+          "label": "action_diff_responses_RFC_6902_async_202"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "agent"
+            },
+            "what": {
+              "type": "string",
+              "value": "delegated OAuth scopes, consent gate, rate limits"
+            }
+          },
+          "label": "agent_delegated_OAuth_scopes_consent_gat"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "agent"
+            },
+            "what": {
+              "type": "string",
+              "value": "SSE + long-poll event channel, error envelopes"
+            }
+          },
+          "label": "agent_SSE_long_poll_event_channel_error_"
+        },
+        {
+          "type": "object",
+          "value": {
+            "layer": {
+              "type": "string",
+              "value": "human"
+            },
+            "what": {
+              "type": "string",
+              "value": "MV3 extension renderer, theme system, component hints"
+            }
+          },
+          "label": "human_MV3_extension_renderer_theme_syste"
+        }
+      ],
+      "label": "Protocol surface"
+    }
+  },
+  "actions": {
+    "open_human_version": {
+      "description": "Open the HTML version of this page (for humans without the extension)",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://agent-page-protocol.vercel.app/html"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_flight_demo": {
+      "description": "Open the British Airways booking demo",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://demo-flight-app.vercel.app/app/ba/home"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_hotel_demo": {
+      "description": "Open the hotel booking demo",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://demo-hotel-app-eta.vercel.app/app/hotel/search"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_classroom_demo": {
+      "description": "Open the classroom demo",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://demo-classroom-app.vercel.app/app/gc/home"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_protocol_lab": {
+      "description": "Open the protocol feature lab",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://demo-lab-app.vercel.app/app/lab/home"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "ingest_manifest": {
+      "description": "Ingest this page as an APP manifest (canonical agent URL)",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://agent-page-protocol.vercel.app/manifest.app.json"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_schemas": {
+      "description": "Browse the manifest JSON Schemas",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://github.com/mosesman831/agent-page-protocol/tree/main/schema"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_mcp": {
+      "description": "Connect your agent via the MCP server",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://github.com/mosesman831/agent-page-protocol/tree/main/packages/mcp"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    },
+    "open_repo": {
+      "description": "Open the source repository",
+      "kind": "navigate",
+      "input": {},
+      "output": {
+        "navigates_to": "https://github.com/mosesman831/agent-page-protocol"
+      },
+      "side_effect": "safe",
+      "idempotent": true,
+      "timeout_ms": 15000
+    }
+  },
+  "navigation": {
+    "breadcrumb": [
+      {
+        "label": "Agent Page Protocol",
+        "url": "https://agent-page-protocol.vercel.app/"
+      }
+    ]
+  },
+  "present": {
+    "layout": "detail",
+    "sections": [
+      {
+        "id": "s_headline",
+        "label": "Welcome",
+        "layout": "detail",
+        "state_path": "headline"
+      },
+      {
+        "id": "s_about",
+        "label": "What it is",
+        "layout": "detail",
+        "state_path": "about"
+      },
+      {
+        "id": "s_humans",
+        "label": "For humans",
+        "layout": "detail",
+        "state_path": "for_humans"
+      },
+      {
+        "id": "s_agents",
+        "label": "For agents",
+        "layout": "detail",
+        "state_path": "for_agents"
+      },
+      {
+        "id": "s_demos",
+        "label": "Live demos",
+        "layout": "detail",
+        "state_path": "demos"
+      },
+      {
+        "id": "s_connect",
+        "label": "Connect an agent",
+        "layout": "detail",
+        "state_path": "connect"
+      },
+      {
+        "id": "s_benefits",
+        "label": "Why APP",
+        "layout": "table",
+        "state_path": "benefits"
+      },
+      {
+        "id": "s_benchmarks",
+        "label": "Benchmarks",
+        "layout": "table",
+        "state_path": "benchmarks"
+      },
+      {
+        "id": "s_surface",
+        "label": "Protocol surface",
+        "layout": "table",
+        "state_path": "protocol_surface"
+      },
+      {
+        "id": "s_schemas",
+        "label": "Schemas",
+        "layout": "detail",
+        "state_path": "schemas"
+      },
+      {
+        "id": "s_links",
+        "label": "Links",
+        "layout": "detail",
+        "state_path": "links"
+      },
+      {
+        "id": "f_human",
+        "label": "Human version",
+        "layout": "form",
+        "primary_action": "open_human_version"
+      },
+      {
+        "id": "f_ingest",
+        "label": "Ingest (agents)",
+        "layout": "form",
+        "primary_action": "ingest_manifest"
+      },
+      {
+        "id": "f_flight",
+        "label": "Flight demo",
+        "layout": "form",
+        "primary_action": "open_flight_demo"
+      },
+      {
+        "id": "f_schemas",
+        "label": "Schemas",
+        "layout": "form",
+        "primary_action": "open_schemas"
+      },
+      {
+        "id": "f_repo",
+        "label": "Repository",
+        "layout": "form",
+        "primary_action": "open_repo"
+      }
+    ]
+  },
+  "meta": {
+    "title": "Agent Page Protocol",
+    "description": "Web pages as JSON manifests — readable by agents, rendered for humans.",
+    "agent": {
+      "canonical_manifest": "https://agent-page-protocol.vercel.app/manifest.app.json",
+      "media_type": "application/vnd.agent-page+json",
+      "action_media_type": "application/vnd.agent-page-action+json",
+      "well_known": "https://agent-page-protocol.vercel.app/.well-known/agent-page",
+      "demos": {
+        "flight": "https://demo-flight-app.vercel.app",
+        "hotel": "https://demo-hotel-app-eta.vercel.app",
+        "classroom": "https://demo-classroom-app.vercel.app",
+        "lab": "https://demo-lab-app.vercel.app"
+      },
+      "repo": "https://github.com/mosesman831/agent-page-protocol"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool/config.json",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "output": { "enum": ["json", "pretty"] },
+    "top_k": { "type": "integer", "minimum": 0, "maximum": 10000 },
+    "timeout_ms": { "type": "integer", "minimum": 100, "maximum": 600000 },
+    "session_ttl_ms": { "type": "integer", "minimum": 60000 },
+    "async_wait": { "type": "boolean" },
+    "policy_strict": { "type": "boolean" },
+    "strict": { "type": "boolean" },
+    "dynamic_tools": { "type": "boolean" },
+    "listen": { "type": ["string", "null"] }
+  }
+}

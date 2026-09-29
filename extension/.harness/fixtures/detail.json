@@ -1,0 +1,62 @@
+{
+  "app": "1.1",
+  "page": {
+    "id": "skin-detail",
+    "url": "http://127.0.0.1:8765/harness/detail/fl-020",
+    "title": "London -> Singapore",
+    "version": "d-1"
+  },
+  "state": {
+    "item": {
+      "type": "object",
+      "label": "Flight",
+      "value": {
+        "id": { "type": "string", "value": "fl-020" },
+        "title": { "type": "string", "value": "London -> Singapore" },
+        "image": {
+          "type": "string",
+          "value": "http://127.0.0.1:8765/extension/assets/img/sin.jpg"
+        },
+        "price": { "type": "number", "value": 91200, "unit": "GBP", "scale": 2 },
+        "status": {
+          "type": "enum",
+          "value": "offer",
+          "options": ["offer", "counter_offer", "in_stock"]
+        },
+        "airline": { "type": "string", "value": "Demo Air" },
+        "departure": { "type": "string", "value": "20:35" },
+        "arrival": { "type": "string", "value": "16:55" },
+        "duration": { "type": "number", "value": 740 },
+        "stops": { "type": "number", "value": 1 }
+      }
+    }
+  },
+  "present": {
+    "layout": "detail",
+    "sections": [
+      {
+        "id": "item",
+        "state_path": "item",
+        "layout": "detail",
+        "primary_action": "accept_offer",
+        "label": "Flight"
+      }
+    ]
+  },
+  "actions": {
+    "accept_offer": {
+      "kind": "mutate",
+      "side_effect": "financial",
+      "description": "Accept offer",
+      "input": {},
+      "output": {}
+    },
+    "reject_offer": {
+      "kind": "mutate",
+      "side_effect": "safe",
+      "description": "Decline offer",
+      "input": {},
+      "output": {}
+    }
+  }
+}

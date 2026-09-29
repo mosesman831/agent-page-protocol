@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool/session.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "created_at",
+    "updated_at",
+    "last_used_at",
+    "origin",
+    "protocol_version",
+    "accepted_versions",
+    "capabilities",
+    "auth",
+    "current",
+    "stack",
+    "cache_policy"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "agent-page.session/1.0" },
+    "id": { "type": "string", "pattern": "^ses_[A-Za-z0-9_-]{8,128}$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "last_used_at": { "type": "string", "format": "date-time" },
+    "origin": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "title": { "type": ["string", "null"], "maxLength": 200 },
+    "protocol_version": { "type": "string" },
+    "accepted_versions": { "type": "array", "items": { "type": "string" } },
+    "capabilities": { "type": "array", "maxItems": 64, "items": { "type": "string" } },
+    "auth": {
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "enum": ["none", "session", "bearer", "api_key"] },
+        "env_ref": { "type": ["string", "null"], "maxLength": 128 },
+        "cookie_jar": { "type": ["string", "null"], "maxLength": 2048 }
+      }
+    },
+    "resume": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "present": { "type": "boolean" },
+        "expires_at": { "type": ["string", "null"], "format": "date-time" },
+        "header": { "const": "X-APP-Resume" }
+      }
+    },
+    "current": {
+      "type": ["object", "null"],
+      "required": ["page_id", "url", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "page_id": { "type": "string" },
+        "url": { "type": "string" },
+        "version": { "type": "string" },
+        "etag": { "type": ["string", "null"] },
+        "title": { "type": ["string", "null"] }
+      }
+    },
+    "stack": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "type": "string", "maxLength": 2048 }
+    },
+    "last_action": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" },
+        "idempotency_key": { "type": ["string", "null"] },
+        "result_version": { "type": ["string", "null"] },
+        "mode": { "type": ["string", "null"] }
+      }
+    },
+    "watch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "last_event_id": { "type": ["string", "null"] },
+        "subscribed": { "type": "boolean" }
+      }
+    },
+    "cache_policy": { "enum": ["public_only"] },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v05_features": { "type": "boolean" },
+        "strict": { "type": "boolean" }
+      }
+    }
+  }
+}

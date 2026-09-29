@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flow.json",
+  "title": "Identity flow shapes",
+  "$defs": {
+    "flowKind": {
+      "enum": ["password", "oauth", "passkey", "magic_link", "mixed"]
+    },
+    "provider": {
+      "type": "object",
+      "required": ["id", "start_url"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "label": { "type": "string", "maxLength": 100 },
+        "start_url": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "catalogEntry": {
+      "type": "object",
+      "required": ["kind", "entry_url"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "$ref": "#/$defs/flowKind" },
+        "entry_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "logout_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "signup_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "recovery_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "providers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/provider" }
+        },
+        "mfa": { "type": "boolean" }
+      }
+    },
+    "metaFlow": {
+      "type": "object",
+      "required": ["id", "kind", "step", "step_index", "step_count", "can_abandon"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(login|logout|signup|recovery|step_up|[a-z][a-z0-9_]{0,31})$"
+        },
+        "kind": { "$ref": "#/$defs/flowKind" },
+        "step": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+        "step_index": { "type": "integer", "minimum": 1 },
+        "step_count": { "type": "integer", "minimum": 1 },
+        "can_abandon": { "type": "boolean" },
+        "abandon_url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "resume_supported": { "type": "boolean" }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(login|logout|signup|recovery|step_up|[a-z][a-z0-9_]{0,31})$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/catalogEntry" }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/catalogEntry" },
+    { "$ref": "#/$defs/metaFlow" },
+    { "$ref": "#/$defs/catalog" }
+  ]
+}

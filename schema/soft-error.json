@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "soft-error.json",
+  "description": "Inline page-level soft error (SPEC §2.3.4). Carried on a 200 Page Manifest: the page stays usable while something failed (e.g. partial results). Codes MUST come from the soft-error subset; hard failures use the Error Envelope over 4xx/5xx instead.",
+  "type": "object",
+  "required": ["code", "message"],
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^app\\.(err|warn)(\\.[a-z0-9_]+)+$",
+      "description": "Const string, e.g. app.err.partial.results or a namespaced app.err.vendor.<vendor>.<name>."
+    },
+    "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_.]+$",
+      "description": "Client catalog id when features.error_i18n (1.1)."
+    },
+    "recoverable_actions": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "description": "Action IDs that exist in /actions the agent may retry/recover with."
+    },
+    "details": {
+      "type": "object",
+      "maxProperties": 16,
+      "additionalProperties": {
+        "$ref": "state-node.json"
+      },
+      "description": "Map of typed StateNodes carrying error context (max 16 keys)."
+    }
+  }
+}
