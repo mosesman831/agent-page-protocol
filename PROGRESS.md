@@ -1554,3 +1554,7 @@ Lab home `feature_index` now presents as a proper 3-column coverage table instea
 **Renderer fix:** cookie-banner OK was a bare `<form method=post>` → posted with no `__action` → 400 `err.action.unknown` on every skinned site. Now a plain dismiss button — no round-trip.
 
 **Gate:** 84/84 manifests valid, site bridge 10/10, lint clean.
+
+## Stage 87 — fictional personas only
+
+Replaced the real-named demo persona ("Moses Man") with a fictional passenger — **Remy Ashford** — across both demos: multiversal (lead passenger, member sign-in, seed booking `MV4X8R` surname → `ashford`, card name, boarding-pass pax line `ASHFORD/REMY MR`) and Halvern House (guest name, `HVN4X8` surname → `ashford`). `demo/test-site.mjs` updated to match. LICENSE + README attribution now reads the `mosesman831` handle; `three-ideas` doc uses the fake name. `man` in `AIRPORTS_FROM` untouched — that's Manchester's IATA code.
