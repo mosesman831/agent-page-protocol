@@ -25,22 +25,17 @@ const MEDIA_ACTION = 'application/vnd.agent-page-action+json';
  * @param {object} opts
  * @param {string} opts.origin deployment origin
  * @param {Object<string, object>} opts.skins site -> DOM skin
- * @param {(pathname: string) => object|null} opts.findManifest
+ * @param {(pathname: string, query?: Object<string, unknown>) => object|null} opts.findManifest
+ *   returns the manifest — already cloned, with query-derived state applied
  * @param {Function} opts.pageHandler the createPageHandler() middleware
  * @param {Function} opts.express express module (for urlencoded)
- * @param {(pathname: string) => string|undefined} [opts.seedVersionOf] version
- *   the manifest had at instance init — lets the form bridge resync stale
- *   __version pins onto a freshly-seeded (unmutated) world instead of 409ing.
  */
-export function mountSiteRoutes(
-  app,
-  { origin, skins = {}, findManifest, pageHandler, express, seedVersionOf },
-) {
+export function mountSiteRoutes(app, { origin, skins = {}, findManifest, pageHandler, express }) {
   const siteSkin = (site) => skins[site] ?? { brand: site, appUrl: `${origin}/app/${site}/home` };
   const siteSlug = (req) => `/app/${req.params.site}/${req.params.slug}`;
 
   app.get('/site/:site/:slug', (req, res, next) => {
-    const manifest = findManifest(siteSlug(req));
+    const manifest = findManifest(siteSlug(req), req.query);
     if (!manifest) return next();
     const accept = String(req.headers.accept ?? '');
     if (accept.includes(MEDIA_PAGE)) {
@@ -56,11 +51,19 @@ export function mountSiteRoutes(
 
   // Coerce urlencoded fields to the action input schema types — only keys the
   // spec declares (stray form fields would trip unknown-param validation).
+  const tryJson = (s) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return undefined;
+    }
+  };
+  const RANGE_TYPES = new Set(['daterange', 'date_range', 'datetimerange', 'datetime_range']);
   const coerceParams = (fields, inputSpec = {}) => {
     const params = {};
     for (const [k, spec] of Object.entries(inputSpec)) {
       const v = fields[k];
-      if (spec.type === 'daterange' || spec.type === 'datetimerange') {
+      if (RANGE_TYPES.has(spec.type)) {
         if (fields[`${k}_from`] || fields[`${k}_to`])
           params[k] = { from: fields[`${k}_from`] ?? '', to: fields[`${k}_to`] ?? '' };
         continue;
@@ -77,14 +80,18 @@ export function mountSiteRoutes(
         };
       else if (spec.type === 'number' || spec.type === 'quantity') params[k] = Number(v);
       else if (spec.type === 'boolean') params[k] = v === 'on' || v === 'true' || v === true;
-      else if (spec.type === 'array')
-        params[k] = Array.isArray(v)
-          ? v
-          : String(v)
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean);
-      else params[k] = v;
+      else if (spec.type === 'object') params[k] = tryJson(v) ?? v;
+      else if (spec.type === 'array') {
+        const parsed = tryJson(v);
+        params[k] = Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(v)
+            ? v
+            : String(v)
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean);
+      } else params[k] = v;
     }
     return params;
   };
@@ -92,9 +99,9 @@ export function mountSiteRoutes(
   app.post('/site/:site/:slug', express.urlencoded({ extended: true }), async (req, res, next) => {
     const site = req.params.site;
     const pathname = siteSlug(req);
-    const manifest = findManifest(pathname);
+    const manifest = findManifest(pathname, req.query);
     if (!manifest) return next();
-    const { __action: actionId, __version, __confirm, __challenge, ...fields } = req.body ?? {};
+    const { __action: actionId, __confirm, __challenge, ...fields } = req.body ?? {};
     const def = manifest.actions?.[actionId];
     const back = `/site/${site}/${req.params.slug}`;
     if (!def || typeof actionId !== 'string') {
@@ -114,136 +121,190 @@ export function mountSiteRoutes(
     }
     const params = coerceParams(fields, def.input);
 
-    // Forward as a wire Action Request through the real middleware; capture the
-    // wire response and re-render it as HTML.
-    const chunks = [];
-    const origWrite = res.write.bind(res);
-    const origEnd = res.end.bind(res);
-    res.write = (chunk, enc, cb) => {
-      chunks.push(Buffer.from(chunk ?? ''));
-      if (typeof enc === 'function') enc();
-      if (typeof cb === 'function') cb();
-      return true;
-    };
-    const finalize = (status, location, body) => {
-      if (res.headersSent) return origEnd();
-      if (location) {
-        const target = String(location).replace('/app/', '/site/');
-        res.redirect(Number(status) === 302 ? 302 : 303, target);
-        return;
-      }
-      if (status === 428 && body?.error?.details) {
-        const d = body.error.details;
-        const confTok = d.confirmation_challenge?.value ?? d.confirmation?.value ?? null;
-        if (confTok) {
-          res
-            .status(200)
-            .type('text/html; charset=utf-8')
-            .send(
-              renderConfirmPage({
-                skin: siteSkin(site),
-                manifest,
-                actionId,
-                def,
-                params,
-                token: confTok,
-              }),
-            );
-          return;
-        }
-        const chId = d.challenge?.value?.id?.value ?? null;
-        if (chId) {
-          res
-            .status(200)
-            .type('text/html; charset=utf-8')
-            .send(
-              renderChallengePage({
-                skin: siteSkin(site),
-                manifest,
-                actionId,
-                def,
-                params,
-                challengeId: chId,
-                challenge: d.challenge.value,
-              }),
-            );
-          return;
-        }
-      }
-      if (body?.error) {
+    // Run one wire Action Request through the real middleware on the real
+    // req/res pair, intercepting writes so nothing reaches the socket until
+    // we render the final HTML. Re-entrant: res is fully restored between
+    // calls so a request can invoke the middleware more than once.
+    const invoke = (extra = {}) =>
+      new Promise((resolve) => {
+        const chunks = [];
+        const origWrite = res.write.bind(res);
+        const origEnd = res.end.bind(res);
+        const done = (out) => {
+          res.write = origWrite;
+          res.end = origEnd;
+          resolve(out);
+        };
+        res.write = (chunk, enc, cb) => {
+          chunks.push(Buffer.from(chunk ?? ''));
+          if (typeof enc === 'function') enc();
+          if (typeof cb === 'function') cb();
+          return true;
+        };
+        res.end = (chunk, enc, cb) => {
+          if (chunk) chunks.push(Buffer.from(chunk ?? ''));
+          let body = null;
+          try {
+            body = JSON.parse(Buffer.concat(chunks).toString('utf8') || 'null');
+          } catch {
+            /* non-JSON body */
+          }
+          const out = {
+            status: res.statusCode,
+            location: res.getHeader('location'),
+            body,
+          };
+          res.removeHeader('location');
+          res.statusCode = 200;
+          if (typeof cb === 'function') cb();
+          done(out);
+        };
+        req.headers['content-type'] = MEDIA_ACTION;
+        req.headers['accept'] = MEDIA_PAGE;
+        req.headers['x-app-version'] = '1.1';
+        req.headers['x-app-idempotency-key'] = `html_${randomBytes(8).toString('hex')}`;
+        req.headers['x-app-origin'] = req.headers.origin ?? origin;
+        // DOM form posts always pin to the version this instance currently
+        // has — serverless worlds re-seed per instance and this bridge is a
+        // single-user demo surface, so resync beats a 409 wall. The wire
+        // path keeps strict version-match semantics for real conflicts.
+        if (manifest.page?.version)
+          req.headers['x-app-if-match-version'] = String(manifest.page.version);
+        else delete req.headers['x-app-if-match-version'];
+        if (extra.confirm) req.headers['x-app-confirmation'] = extra.confirm;
+        else delete req.headers['x-app-confirmation'];
+        if (extra.challenge) req.headers['x-app-challenge'] = extra.challenge;
+        else delete req.headers['x-app-challenge'];
+        // body-parser's stream was consumed by urlencoded above; flag it so
+        // the pageHandler's JSON parser skips re-parsing and keeps this body.
+        req._body = true;
+        req.body = { app: '1.1', action: actionId, params };
+        // The middleware routes on req.originalUrl (absoluteUrl()) — point
+        // both at the manifest path, not the /site form path.
+        req.url = pathname;
+        req.originalUrl = pathname;
+        pageHandler(req, res, (err) => {
+          done({
+            status: 502,
+            body: err
+              ? { error: { code: 'app.err.bridge', message: String(err?.message ?? err) } }
+              : null,
+          });
+        });
+      });
+
+    const confTokenOf = (b) =>
+      b?.error?.details?.confirmation_challenge?.value ??
+      b?.error?.details?.confirmation?.value ??
+      null;
+    const challIdOf = (b) => b?.error?.details?.challenge?.value?.id?.value ?? null;
+    const tokenGone = (code) =>
+      [
+        'app.err.action.confirmation_invalid',
+        'app.err.auth.challenge_failed',
+        'app.err.auth.challenge_invalid',
+        'app.err.auth.challenge_expired',
+      ].includes(code);
+
+    let r = await invoke({ confirm: __confirm, challenge: __challenge });
+    // Pending confirmations/challenges are held by the instance that issued
+    // them — a serverless resubmit often lands elsewhere. Re-run the action
+    // to mint a fresh token on this instance, then replay the user's
+    // already-made decision (approve / submitted code) with it.
+    if (__confirm && tokenGone(r.body?.error?.code)) {
+      const again = await invoke({});
+      const tok = confTokenOf(again.body);
+      if (tok) r = await invoke({ confirm: tok });
+    }
+    if (__challenge && tokenGone(r.body?.error?.code)) {
+      const again = await invoke({});
+      const ch = challIdOf(again.body);
+      if (ch) r = await invoke({ challenge: ch });
+    }
+
+    const { status, location, body } = r;
+    // Session bridge: wire login responses carry state.session_token — keep
+    // it in a cookie so later site POSTs send it back (auth:'session').
+    const sess = body?.state?.session_token;
+    if (sess && sess.type !== 'null') {
+      const t = sess.value ?? sess;
+      res.setHeader(
+        'Set-Cookie',
+        t
+          ? `session=${String(t)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`
+          : 'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      );
+    }
+    if (location) {
+      const target = String(location).replace('/app/', '/site/');
+      res.redirect(Number(status) === 302 ? 302 : 303, target);
+      return;
+    }
+    if (status === 428 && body?.error?.details) {
+      const d = body.error.details;
+      const confTok = confTokenOf(body);
+      if (confTok) {
         res
-          .status(status)
+          .status(200)
           .type('text/html; charset=utf-8')
           .send(
-            renderErrorPage({
+            renderConfirmPage({
               skin: siteSkin(site),
-              status,
-              code: body.error.code,
-              message: body.error.message,
-              back,
+              manifest,
+              actionId,
+              def,
+              params,
+              token: confTok,
             }),
           );
         return;
       }
-      if (body?.page?.url) {
+      const chId = challIdOf(body);
+      if (chId) {
         res
           .status(200)
           .type('text/html; charset=utf-8')
-          .send(renderPage(body, { skin: siteSkin(site) }));
+          .send(
+            renderChallengePage({
+              skin: siteSkin(site),
+              manifest,
+              actionId,
+              def,
+              params,
+              challengeId: chId,
+              challenge: d.challenge.value,
+            }),
+          );
         return;
       }
-      // diff or event reply — re-render the stored (post-mutation) manifest
-      const fresh = findManifest(pathname) ?? manifest;
+    }
+    if (body?.error) {
+      res
+        .status(status)
+        .type('text/html; charset=utf-8')
+        .send(
+          renderErrorPage({
+            skin: siteSkin(site),
+            status,
+            code: body.error.code,
+            message: body.error.message,
+            back,
+          }),
+        );
+      return;
+    }
+    if (body?.page?.url) {
       res
         .status(200)
         .type('text/html; charset=utf-8')
-        .send(renderPage(fresh, { skin: siteSkin(site) }));
-    };
-    res.end = (chunk, enc, cb) => {
-      if (chunk) chunks.push(Buffer.from(chunk ?? ''));
-      res.write = origWrite;
-      res.end = origEnd;
-      const status = res.statusCode;
-      const location = res.getHeader('location');
-      const buf = Buffer.concat(chunks);
-      let body = null;
-      try {
-        body = JSON.parse(buf.toString('utf8') || 'null');
-      } catch {
-        /* non-JSON body → render the stored manifest */
-      }
-      if (typeof cb === 'function') cb();
-      finalize(status, location, body);
-    };
-
-    req.headers['content-type'] = MEDIA_ACTION;
-    req.headers['accept'] = MEDIA_PAGE;
-    req.headers['x-app-version'] = '1.1';
-    req.headers['x-app-idempotency-key'] =
-      req.headers['x-app-idempotency-key'] ?? `html_${randomBytes(8).toString('hex')}`;
-    req.headers['x-app-origin'] = req.headers['x-app-origin'] ?? req.headers.origin ?? origin;
-    // Fresh-world resync: if this instance never mutated the manifest (still
-    // at its seed version), a stale __version came from a dead instance —
-    // pin the current version so the wire 409 doesn't fire on cold starts.
-    const healed =
-      __version != null &&
-      seedVersionOf?.(pathname) &&
-      manifest.page?.version === seedVersionOf(pathname)
-        ? manifest.page.version
-        : __version;
-    if (healed) req.headers['x-app-if-match-version'] = String(healed);
-    if (__confirm) req.headers['x-app-confirmation'] = String(__confirm);
-    if (__challenge) req.headers['x-app-challenge'] = String(__challenge);
-    // body-parser's stream was consumed by urlencoded above; flag it so the
-    // pageHandler's JSON parser skips re-parsing and keeps this body.
-    req._body = true;
-    req.body = { app: '1.1', action: actionId, params };
-    // The middleware routes on req.originalUrl (absoluteUrl()) — point both at
-    // the manifest path, not the /site form path the browser posted to.
-    req.url = pathname;
-    req.originalUrl = pathname;
-    pageHandler(req, res, (err) => {
-      if (err) next(err);
-    });
+        .send(renderPage(body, { skin: siteSkin(site) }));
+      return;
+    }
+    // diff or event reply — re-render the stored (post-mutation) manifest
+    const fresh = findManifest(pathname, req.query) ?? manifest;
+    res
+      .status(200)
+      .type('text/html; charset=utf-8')
+      .send(renderPage(fresh, { skin: siteSkin(site) }));
   });
 }

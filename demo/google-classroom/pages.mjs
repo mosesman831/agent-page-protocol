@@ -552,7 +552,7 @@ export function buildGcPages(origin) {
       state: {
         average: obj(
           {
-            class_average: num(884, { label: 'Class average (%)', scale: 1 }),
+            class_average: num(88.4, { label: 'Class average (%)' }),
             work_graded: num(5, { label: 'Assignments graded' }),
             work_outstanding: num(2, { label: 'Outstanding' }),
           },
@@ -565,11 +565,11 @@ export function buildGcPages(origin) {
             points: 'number',
             scored: 'number',
             status: 'enum',
-            returned: 'date',
+            returned: 'string',
           },
           [
-            ['Essay: chapters 12-15', '2026-10-01', 100, 0, 'in_progress', '2026-01-01'],
-            ['Quiz: chapter 10 vocab', '2026-09-25', 20, 18, 'turned_in', '2026-01-01'],
+            ['Essay: chapters 12-15', '2026-10-01', 100, 0, 'in_progress', '—'],
+            ['Quiz: chapter 10 vocab', '2026-09-25', 20, 18, 'turned_in', '—'],
             ['Essay: chapters 9-11', '2026-09-10', 100, 91, 'graded', '2026-09-17'],
             ['Reading response 8', '2026-08-28', 30, 27, 'graded', '2026-09-02'],
             ['Essay: chapters 5-8', '2026-08-21', 100, 84, 'graded', '2026-08-29'],

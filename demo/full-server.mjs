@@ -17,6 +17,7 @@ import { makeMvaHandlers } from './multiversal/handlers.mjs';
 import { makeGcHandlers } from './google-classroom/handlers.mjs';
 import { makeHotelHandlers } from './hotel-booking/handlers.mjs';
 import { mountSiteRoutes } from './lib/site-routes.mjs';
+import { deriveManifest } from './lib/derive.mjs';
 
 const bump = (v) => {
   const m = /^(.*?)(\d+)$/.exec(String(v));
@@ -82,6 +83,13 @@ export async function createFullDemoApp({
     }
   }
   const findManifest = (pathname) => livePages.get(pathname) ?? null;
+  // Clone + apply query-derived state (demo/lib/derive.mjs) — used by the
+  // /site/ bridge so its GETs and post-mutation re-renders see the same
+  // param-driven pages the wire getManifest produces.
+  const findManifestDerived = (pathname, query = {}) => {
+    const m = findManifest(pathname);
+    return m ? deriveManifest(structuredClone(m), query ?? {}) : null;
+  };
   const storeManifest = (manifest) => livePages.set(new URL(manifest.page.url).pathname, manifest);
 
   const jobs = new Map(); // jobId -> { pageUrl, polls, finalManifest }
@@ -560,6 +568,12 @@ export async function createFullDemoApp({
     pick_city: async (ctx) => {
       const next = structuredClone(ctx.manifest);
       next.state.picked = str(String(ctx.params.city), 'Picked city');
+      next.state.results = {
+        type: 'table',
+        label: 'Picked',
+        fields: { city: 'string' },
+        value: [[String(ctx.params.city)]],
+      };
       next.page.version = bump(next.page.version);
       storeManifest(next);
       return { type: 'diff', nextManifest: next };
@@ -674,8 +688,14 @@ export async function createFullDemoApp({
     const nav = def?.output?.navigates_to;
     if (nav) {
       const url = new URL(nav, ctx.manifest.page.url);
-      if (url.origin !== new URL(ctx.manifest.page.url).origin) {
-        return { type: 'navigate', url: url.href, mode: 'push' };
+      // Carry non-secret scalar params into the target URL so query-derived
+      // pages (results, bookings) render this request's inputs on ANY
+      // instance — the params are the state.
+      const SECRETISH =
+        /pass|secret|token|otp|cvv|card|code|pin|challenge|confirm|expiry|billing|address|passport|dob|iban|sort/i;
+      for (const [k, v] of Object.entries(ctx.params ?? {})) {
+        if (SECRETISH.test(k) || v == null || typeof v === 'object') continue;
+        url.searchParams.set(k, String(v));
       }
       return { type: 'navigate', url: url.href, mode: 'push' };
     }
@@ -744,7 +764,14 @@ export async function createFullDemoApp({
       }
       const manifest = findManifest(u.pathname);
       if (!manifest) return null;
-      return structuredClone(manifest);
+      // Query-derived state: results and booking pages rebuild their dynamic
+      // state from URL params so every serverless instance renders the same
+      // answer regardless of which instance an earlier action mutated.
+      const cloned = deriveManifest(structuredClone(manifest), Object.fromEntries(u.searchParams));
+      // page.url MUST equal the request URL including query (clients throw
+      // manifest.url_mismatch otherwise).
+      if (u.search) cloned.page = { ...cloned.page, url: `${u.origin}${u.pathname}${u.search}` };
+      return cloned;
     },
     actionHandlers,
     // Bearer actions get real scoped-token verification (SPEC-AUTH §6);
@@ -788,10 +815,9 @@ export async function createFullDemoApp({
   mountSiteRoutes(app, {
     origin,
     skins,
-    findManifest,
+    findManifest: findManifestDerived,
     pageHandler,
     express,
-    seedVersionOf: (pathname) => seedVersions.get(pathname),
   });
 
   // Browser-session bridge: a login response carries state.session_token —
