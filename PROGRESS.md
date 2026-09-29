@@ -1578,3 +1578,11 @@ Live demos hit `app.err.diff.conflict` whenever a POST landed on a fresh Vercel 
 ## Stage 92 — dead toggle switches fixed
 
 Boolean/`hint:'toggle'` fields rendered a visual switch whose native input was `opacity:0; width:0; height:0` — clicks on the `.tk` knob hit a plain span, so every toggle was un-clickable (the text label worked, the switch didn't). Both render paths now wrap input + knob in `<label class="switch" for>` so the whole control toggles; the `input:checked+.tk` CSS is unchanged.
+
+## Stage 93 — cross-instance demo state fixes
+- Query-derived state (demo/lib/derive.mjs): mva/hotel results, fare-finder, and booking pages rebuild dynamic state from URL params — every serverless instance renders identical results; navigate URLs carry non-secret scalar params (SECRETISH blacklist).
+- Site-bridge confirm/challenge replay: token-gone errors re-invoke the action to mint a fresh token on the serving instance, then replay the decision — kills cross-instance 428/403 walls.
+- Unconditional DOM-side version pin (single-user surface); session cookie bridged from state.session_token; param coercion for date_range/datetime_range/object/array.
+- page.url stamped with request query to satisfy client url-match contract.
+- Cosmetics: money inputs step=any, confirm-template param stringify, file-chip unwrapping, GC gradebook data fixes, hotel review counter num().
+- Gate: 21,369 tests, 84/84 manifests, bridge 10/10, lint clean.
