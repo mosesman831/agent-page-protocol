@@ -585,7 +585,7 @@ function shell({ skin, manifest, title, body, hero = '', widget = '', themeVars:
     ? `<div class="cols">${cols}</div><div class="base">${s.footerNote ?? s.footerHtml ?? ''}</div>`
     : `<div class="base">${s.footerHtml ?? s.footerNote ?? ''}</div>`;
   const cookie = s.cookieBanner
-    ? `<div class="cookie"><span>${esc(s.cookieText ?? 'We use cookies to improve your experience.')}</span><form method="post" action="${esc(s.cookieAction ?? '#')}"><button class="btn slim" type="submit">OK</button></form></div>`
+    ? `<div class="cookie"><span>${esc(s.cookieText ?? 'We use cookies to improve your experience.')}</span><button class="btn slim" type="button" onclick="this.closest('.cookie').remove()">OK</button></div>`
     : '';
   const inlineVars = tv
     ? `:root{${Object.entries(tv)

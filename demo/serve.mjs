@@ -28,6 +28,7 @@ import { buildMvaPages } from './multiversal/pages.mjs';
 import { mvaSkin } from './multiversal/skin.mjs';
 import { gcSkin } from './google-classroom/skin.mjs';
 import { labSkin } from './protocol-lab/skin.mjs';
+import { hotelSkin } from './hotel-booking/skin.mjs';
 import { wellKnownManifest } from './lib/discovery.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url)); // repo root
@@ -57,7 +58,12 @@ const SITES = {
   lab: buildLabPages(ORIGIN),
   mva: buildMvaPages(ORIGIN),
 };
-const SKINS = { mva: mvaSkin(ORIGIN), gc: gcSkin(ORIGIN), lab: labSkin(ORIGIN) };
+const SKINS = {
+  mva: mvaSkin(ORIGIN),
+  gc: gcSkin(ORIGIN),
+  lab: labSkin(ORIGIN),
+  hotel: hotelSkin(ORIGIN),
+};
 
 // Full protocol stack (negotiation, etag/304, idempotency, confirmation,
 // diffs, async, rate-limit, challenges) via the real @agent-page/server

@@ -30,6 +30,7 @@ import { buildMvaPages } from '../demo/multiversal/pages.mjs';
 import { mvaSkin } from '../demo/multiversal/skin.mjs';
 import { gcSkin } from '../demo/google-classroom/skin.mjs';
 import { labSkin } from '../demo/protocol-lab/skin.mjs';
+import { hotelSkin } from '../demo/hotel-booking/skin.mjs';
 import { wellKnownManifest } from '../demo/lib/discovery.mjs';
 import { str, obj, navAction } from '../demo/lib/nodes.mjs';
 
@@ -85,6 +86,7 @@ function skinsFor(origin) {
   if (ENABLED.has('mva')) skins.mva = mvaSkin(origin);
   if (ENABLED.has('gc')) skins.gc = gcSkin(origin);
   if (ENABLED.has('lab')) skins.lab = labSkin(origin);
+  if (ENABLED.has('hotel')) skins.hotel = hotelSkin(origin);
   return skins;
 }
 
