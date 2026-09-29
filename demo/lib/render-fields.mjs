@@ -137,7 +137,7 @@ export function inputHtml(name, spec, values = {}, hint) {
   const hintTxt = spec.example != null ? `<span class="hint">e.g. ${esc(spec.example)}</span>` : '';
   const ht = hint?.type;
   if (ht === 'toggle')
-    return `<div class="fld switchrow${span}"><span class="switch"><input type="checkbox" id="${id}" name="${esc(name)}" value="on"${val ? ' checked' : ''}/><span class="tk"></span></span>${lbl.replace('for=', 'for=')}</div>`;
+    return `<div class="fld switchrow${span}"><label class="switch" for="${id}"><input type="checkbox" id="${id}" name="${esc(name)}" value="on"${val ? ' checked' : ''}/><span class="tk"></span></label>${lbl}</div>`;
   if (ht === 'slider')
     return `<div class="fld${span}">${lbl}<input type="range" id="${id}" name="${esc(name)}" value="${esc(val)}"${spec.min != null ? ` min="${spec.min}"` : ''}${spec.max != null ? ` max="${spec.max}"` : ''} oninput="this.nextElementSibling&&(this.nextElementSibling.textContent=this.value)"/><output>${esc(val)}</output></div>`;
   if (ht === 'radio_group' && spec.options)
@@ -158,7 +158,7 @@ export function inputHtml(name, spec, values = {}, hint) {
     return `<div class="fld${span || ''}">${lbl}<textarea id="${id}" name="${esc(name)}" rows="4"${req}${spec.max_length ? ` maxlength="${spec.max_length}"` : ''}>${esc(val)}</textarea></div>`;
   switch (spec.type) {
     case 'boolean':
-      return `<div class="fld switchrow${span}"><span class="switch"><input type="checkbox" id="${id}" name="${esc(name)}" value="on"${val ? ' checked' : ''}/><span class="tk"></span></span><label for="${id}">${esc(desc)}</label></div>`;
+      return `<div class="fld switchrow${span}"><label class="switch" for="${id}"><input type="checkbox" id="${id}" name="${esc(name)}" value="on"${val ? ' checked' : ''}/><span class="tk"></span></label><label for="${id}">${esc(desc)}</label></div>`;
     case 'enum':
       return `<div class="fld${span}">${lbl}<select id="${id}" name="${esc(name)}"${req}>${(
         spec.options ?? []
