@@ -1,6 +1,6 @@
 {
   "name": "@agent-page/client",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Agent Page Protocol (APP) reference agent client library",
   "type": "module",
   "main": "./dist/index.js",

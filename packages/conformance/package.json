@@ -1,7 +1,7 @@
 {
   "name": "@agent-page/conformance",
-  "version": "0.4.0",
-  "description": "Agent Page Protocol (APP) conformance test suite — SPEC §19.3",
+  "version": "0.5.0",
+  "description": "Agent Page Protocol (APP) conformance test suite \u2014 SPEC \u00a719.3",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
