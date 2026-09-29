@@ -2,38 +2,60 @@
 
 **Structured web pages for agents — rendered as normal sites for humans.**
 
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version: v0.5.0 public beta](https://img.shields.io/badge/version-0.5.0-orange.svg)
+![Node: ≥18](https://img.shields.io/badge/node-%E2%89%A518-green.svg)
+
 APP replaces HTML/DOM as the canonical page representation. A page is a JSON
-manifest: typed state plus declared actions. Agents read and act on it
+manifest — typed state plus declared actions. Agents read and act on it
 directly; the Chrome extension renders the same document as a real website.
 One document, two readers.
 
 **[agent-page-protocol.vercel.app](https://agent-page-protocol.vercel.app)** —
 the launch page is itself an APP manifest (browsers get HTML, agents get JSON).
 
-## How it works
+## Try it in 30 seconds
+
+Every demo below speaks the wire today — no install required.
 
 ```bash
-# Agents fetch the manifest instead of HTML
+# Fetch a page manifest instead of HTML
 curl -H 'Accept: application/vnd.agent-page+json' \
-  https://demo-flight-app.vercel.app/app/ba/home
+  https://demo-flight-app.vercel.app/app/mva/home
 
-# …and act on it — one typed POST instead of DOM scraping
-curl -X POST https://demo-flight-app.vercel.app/app/ba/home \
+# Act on it — one typed POST instead of DOM scraping
+curl -X POST 'https://demo-flight-app.vercel.app/app/mva/home' \
   -H 'Content-Type: application/vnd.agent-page-action+json' \
-  -H 'X-APP-Idempotency-Key: book-42' \
+  -H 'Origin: https://demo-flight-app.vercel.app' \
+  -H 'X-APP-Idempotency-Key: demo-42' \
   -d '{"app":"1.1","action":"search_flights",
-       "params":{"from":"lhr","to":"jfk","depart":"2026-10-05"}}'
+       "params":{"from":"lhr","to":"jfk","depart":"2026-10-12"}}'
+# → 303 to a results manifest with real flights
 ```
 
 Actions return the next manifest or an RFC 6902 diff — ~89% fewer bytes than
 re-fetching. Revalidation is an ETag → `304` round trip with a 0-byte body.
 
+## Live demos
+
+Each demo is one document with two readers — open the human site in a browser
+(or with the extension), or fetch the agent manifest.
+
+| Site                 | Human (generated DOM)                                                     | Agent (manifest)                                                        | What it exercises                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Multiversal Airways  | [/site/mva/home](https://demo-flight-app.vercel.app/site/mva/home)        | [/app/mva/home](https://demo-flight-app.vercel.app/app/mva/home)        | Full airline: search → fare families → seats → extras → pay (confirmation + challenge) → manage → check-in → loyalty |
+| Halvern House hotels | [/site/hotel/home](https://demo-hotel-app-eta.vercel.app/site/hotel/home) | [/app/hotel/home](https://demo-hotel-app-eta.vercel.app/app/hotel/home) | Search → rooms → checkout → confirmation → manage booking                                                            |
+| Classwork            | [/site/gc/home](https://demo-classroom-app.vercel.app/site/gc/home)       | [/app/gc/home](https://demo-classroom-app.vercel.app/app/gc/home)       | Classroom: stream, classwork, grades, join-by-code, submissions                                                      |
+| Protocol Lab         | [/site/lab/home](https://demo-lab-app.vercel.app/site/lab/home)           | [/app/lab/home](https://demo-lab-app.vercel.app/app/lab/home)           | Every wire feature: diffs, watch/SSE, async jobs, auth, delegation                                                   |
+
 ## Give your agent APP access
 
 Paste [`docs/use-prompt.md`](docs/use-prompt.md) into a coding agent — it
 points at [`docs/agent-setup.md`](docs/agent-setup.md), which walks through
-installing the APP MCP server (10 fixed tools), the `agent-page` CLI, and the
-raw-HTTP contract.
+installing the APP MCP server (10 fixed tools: `app_discover`, `app_open`,
+`app_act`, `app_confirm`, `app_challenge`, `app_watch`, `app_sessions`,
+`app_logout`, `app_reset`, `app_read`), the `agent-page` CLI, and the raw-HTTP
+contract.
 
 ## Adopt APP — paste into a coding agent
 
@@ -93,15 +115,6 @@ STEP 6 — Validate every emitted manifest against the schema (ajv, or the
             https://agent-page-protocol.vercel.app/app-extension.zip)
 ```
 
-## Live demos
-
-| Site                                                                     | What it exercises                                                     |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| [demo-flight-app](https://demo-flight-app.vercel.app/app/ba/home)        | British Airways booking — search → fares → seats → payment → PNR      |
-| [demo-hotel-app](https://demo-hotel-app-eta.vercel.app/app/hotel/search) | Hotel booking — search → rooms → checkout → confirmation              |
-| [demo-classroom-app](https://demo-classroom-app.vercel.app/app/gc/home)  | Classroom clone — stream, classwork, grades                           |
-| [demo-lab-app](https://demo-lab-app.vercel.app/app/lab/home)             | Feature lab — every wire feature: diffs, watch, async, auth, delegate |
-
 ## Measured
 
 From `benchmarks/run.mjs` against the flights server (2026-09-26, localhost,
@@ -121,10 +134,11 @@ Node 24 — reproduce with `node benchmarks/run.mjs`):
 | [`packages/client`](packages/client/)           | `@agent-page/client` — agent SDK: cache, hydrate, diff, policy, navigation, action dispatch                       |
 | [`packages/conformance`](packages/conformance/) | `@agent-page/conformance` — 142 protocol vectors + auth/idempotency/confirmation/CSRF/events suites               |
 | [`packages/tool-core`](packages/tool-core/)     | `@agent-page/tool-core` — shared session store, digests, holds, credentials resolver                              |
-| [`packages/cli`](packages/cli/)                 | `@agent-page/cli` (`agent-page`) — stateful CLI: open, act, confirm, challenge, watch, discover                   |
+| [`packages/cli`](packages/cli/)                 | `@agent-page/cli` (`agent-page`, `apage`) — stateful CLI: open, act, confirm, challenge, watch, discover          |
 | [`packages/mcp`](packages/mcp/)                 | `@agent-page/mcp` — MCP server: 10 fixed tools (`app_discover` … `app_reset`)                                     |
 | [`extension/`](extension/)                      | Chrome MV3 renderer (vanilla JS; load unpacked)                                                                   |
-| [`examples/flights`](examples/flights/)         | Flight booking example (search → filter → book → pay)                                                             |
+| [`demo/`](demo/)                                | Four production-grade demo sites (airline, hotel, classroom, lab) — manifests + generated DOM                     |
+| [`examples/flights`](examples/flights/)         | Minimal flight booking example (search → filter → book → pay)                                                     |
 | [`benchmarks/`](benchmarks/)                    | Protocol performance suite                                                                                        |
 | [`deploy/protocol-site`](deploy/protocol-site/) | The launch site (Next.js; APP manifest first, HTML fallback)                                                      |
 
@@ -133,7 +147,7 @@ Node 24 — reproduce with `node benchmarks/run.mjs`):
 ```bash
 npm ci
 npm run build
-npm test    # 442 vitest + 12 payment-seam vectors + 221 extension assertions
+npm test    # 21,369 tests: vitest + conformance vectors + extension harness
 npm run lint
 ```
 
@@ -145,7 +159,8 @@ equivalence story, and the file-size budget.
 
 Download [`app-extension.zip`](https://agent-page-protocol.vercel.app/app-extension.zip)
 (or use [`extension/`](extension/) directly), then: unzip → `chrome://extensions`
-→ **Developer mode** → **Load unpacked** → select `extension/`.
+→ **Developer mode** → **Load unpacked** → select `extension/`. Chrome Web
+Store listing is coming with v1.0.
 
 ### Flights example
 
@@ -169,6 +184,13 @@ Happy path: `GET /flights` → search → results table → `filter` diff →
 Key headers: `X-APP-Version`, `X-APP-Page-Id`, `X-APP-Response-Mode`,
 `X-APP-Client`, `X-APP-Idempotency-Key`, `X-APP-If-Match-Version`,
 `X-APP-Confirmation`, `X-APP-Origin`.
+
+## Status
+
+**v0.5 public beta.** The wire contract is stable and conformance-tested
+(142 vectors); the beta window exists to collect real-agent feedback before the
+v1.0 wire freeze. On the roadmap: Chrome Web Store listing, published npm
+packages, Python SDK, manifest signing.
 
 ## License
 
