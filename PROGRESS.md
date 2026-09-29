@@ -1586,3 +1586,4 @@ Boolean/`hint:'toggle'` fields rendered a visual switch whose native input was `
 - page.url stamped with request query to satisfy client url-match contract.
 - Cosmetics: money inputs step=any, confirm-template param stringify, file-chip unwrapping, GC gradebook data fixes, hotel review counter num().
 - Gate: 21,369 tests, 84/84 manifests, bridge 10/10, lint clean.
+- Follow-up: same-page form POSTs inherit the page query (formActionUrl + site-routes keeps qs on wire rewrite) — derived flight/fare/hotel selects resolve the same manifest the page rendered. Bridge suite 11/11.
