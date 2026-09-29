@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ShaderHero from '../components/ShaderHero';
 import CopyBlock from '../components/CopyBlock';
+import CopyBtn from '../components/CopyBtn';
 
 const REPO = 'https://github.com/mosesman831/agent-page-protocol';
 const SPECREPO = 'https://github.com/mosesman831/APP-specs';
@@ -15,6 +16,18 @@ Content-Type: application/vnd.agent-page-action+json
 
 {"app":"1.1","action":"search_flights",
  "params":{"from":"lhr","to":"jfk","depart":"2026-10-05"}}`;
+
+// Keep in sync with docs/use-prompt.md (the fenced block is the same text).
+const USE_PROMPT = `Your environment can speak Agent Page Protocol (APP) — JSON page manifests +
+typed actions instead of scraping HTML/DOM.
+
+Set it up by following this guide:
+https://github.com/mosesman831/agent-page-protocol/blob/main/docs/agent-setup.md
+
+Read it, configure the APP MCP server (or the CLI path if MCP isn't available
+in this client), then verify by opening
+https://demo-lab-app.vercel.app/app/lab/home and reading its manifest.
+Tell me when you're connected and which APP tools you can see.`;
 
 const MCP_INSTALL = `# 1. build the server once:
 git clone ${REPO} && cd agent-page-protocol
@@ -268,13 +281,18 @@ export default async function Home() {
               Three ways in — same protocol underneath. Copy a block, paste it where your agent
               lives.
             </p>
-            <div className="stack two">
-              <CopyBlock
-                label="paste into your agent — it teaches it the protocol"
-                code={AGENT_PROMPT}
-              />
-              <CopyBlock label="install the MCP server" code={MCP_INSTALL} />
+            <div className="ctas" style={{ marginBottom: 14 }}>
+              <CopyBtn code={USE_PROMPT}>copy the setup prompt →</CopyBtn>
+              <CopyBtn className="btn btn-sec" code={AGENT_PROMPT}>
+                copy the wire-protocol prompt
+              </CopyBtn>
             </div>
+            <p className="fine" style={{ marginTop: 0 }}>
+              Prompts point your agent at{' '}
+              <a href={`${REPO}/blob/main/docs/agent-setup.md`}>docs/agent-setup.md</a> — MCP server
+              install, CLI path, verify steps.
+            </p>
+            <CopyBlock label="install the MCP server" code={MCP_INSTALL} />
             <div className="stack" style={{ marginTop: 14 }}>
               <CopyBlock
                 label="act on a page — one declared action, typed params"
@@ -319,7 +337,12 @@ export default async function Home() {
               Devin). It asks one question — full migration or canonical + auto-negotiation — pulls
               the live schema, then walks the matching guide.
             </p>
-            <CopyBlock label="adopt APP — paste into your coding agent" code={ADOPT_PROMPT} />
+            <div className="ctas">
+              <CopyBtn code={ADOPT_PROMPT}>copy the adoption prompt →</CopyBtn>
+              <a className="btn btn-sec" href={`${REPO}/blob/main/docs/adopt-prompt.md`}>
+                view prompt source
+              </a>
+            </div>
             <div className="grid" style={{ marginTop: 14 }}>
               <a className="card" href={`${REPO}/blob/main/docs/canonicalmigration.md`}>
                 <h3>Canonical + negotiation</h3>
