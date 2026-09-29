@@ -10,6 +10,7 @@ import { str, num, obj, arr, bool } from '../lib/nodes.mjs';
 import { lab, page, navHome, labPresent } from './helpers.mjs';
 import { addExtraLabPages, addDelegatedAuthPages, addWebNodePages } from './pages-extra.mjs';
 import { addLabFlowPages } from './pages-flows.mjs';
+import { addLabConsolePages } from './pages-console.mjs';
 export function buildLabPages(origin) {
   const pages = new Map();
 
@@ -512,6 +513,7 @@ export function buildLabPages(origin) {
   addLabFlowPages(pages, origin);
   addDelegatedAuthPages(pages, origin);
   addWebNodePages(pages, origin);
+  addLabConsolePages(pages, origin);
 
   return pages;
 }
