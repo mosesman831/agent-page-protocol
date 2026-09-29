@@ -376,6 +376,21 @@
           "type": "string",
           "value": "https://agent-page-protocol.vercel.app/app-extension.zip",
           "label": "Chrome extension (zip, v0.5)"
+        },
+        "adopt_prompt": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/docs/adopt-prompt.md",
+          "label": "Adoption prompt for coding agents"
+        },
+        "migration_canonical": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/docs/canonicalmigration.md",
+          "label": "Guide: APP alongside DOM via Accept negotiation"
+        },
+        "migration_full": {
+          "type": "string",
+          "value": "https://github.com/mosesman831/agent-page-protocol/blob/main/docs/fullmigration.md",
+          "label": "Guide: manifests as the page documents"
         }
       },
       "label": "Links"

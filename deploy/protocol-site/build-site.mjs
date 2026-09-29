@@ -181,6 +181,18 @@ const site = {
         benchmarks_source: str(`${REPO}/tree/main/benchmarks`, 'Benchmark methodology'),
         extension: str(`${REPO}/tree/main/extension`, 'Chrome extension source'),
         extension_download: str(`${ORIGIN}/app-extension.zip`, 'Chrome extension (zip, v0.5)'),
+        adopt_prompt: str(
+          `${REPO}/blob/main/docs/adopt-prompt.md`,
+          'Adoption prompt for coding agents',
+        ),
+        migration_canonical: str(
+          `${REPO}/blob/main/docs/canonicalmigration.md`,
+          'Guide: APP alongside DOM via Accept negotiation',
+        ),
+        migration_full: str(
+          `${REPO}/blob/main/docs/fullmigration.md`,
+          'Guide: manifests as the page documents',
+        ),
       },
       'Links',
     ),
