@@ -193,6 +193,14 @@ const site = {
           `${REPO}/blob/main/docs/fullmigration.md`,
           'Guide: manifests as the page documents',
         ),
+        use_prompt: str(
+          `${REPO}/blob/main/docs/use-prompt.md`,
+          'Setup prompt: give an agent APP access',
+        ),
+        agent_setup: str(
+          `${REPO}/blob/main/docs/agent-setup.md`,
+          'Guide: add the APP MCP server / CLI to an agent',
+        ),
       },
       'Links',
     ),

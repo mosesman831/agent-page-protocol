@@ -28,6 +28,13 @@ curl -X POST https://demo-flight-app.vercel.app/app/ba/home \
 Actions return the next manifest or an RFC 6902 diff — ~89% fewer bytes than
 re-fetching. Revalidation is an ETag → `304` round trip with a 0-byte body.
 
+## Give your agent APP access
+
+Paste [`docs/use-prompt.md`](docs/use-prompt.md) into a coding agent — it
+points at [`docs/agent-setup.md`](docs/agent-setup.md), which walks through
+installing the APP MCP server (10 fixed tools), the `agent-page` CLI, and the
+raw-HTTP contract.
+
 ## Adopt APP — paste into a coding agent
 
 Copy this prompt into Cursor, Copilot, Claude Code, Devin, etc. It asks one
