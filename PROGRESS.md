@@ -1534,3 +1534,7 @@ schema/extension-fuzz.test.mjs` → 2608 pass / 0 fail; `npm run build`
 **Protocol Lab** (`demo/protocol-lab/`): 3 new manifests in `pages-console.mjs` — `playground` (one action carrying every param type — text, quantity slider, money, boolean, enum, array, date, date_range — echoed back verbatim by `inspect_params`), `status` (protocol signals table + stats), `changelog` (wire releases + versioning policy). `inspect_params` handler in `full-server.mjs` echoes wire params into `state.last_echo`. `skin.mjs` adds a dark developer-console skin (mono logo, terminal palette, status/changelog links). `demo/validate.mjs` now validates lab manifests too — 74/74 valid.
 
 **Gate:** all manifest sets valid, site bridge 10/10, lint clean, wire `inspect_params` verified with every param type (quantity, money, array, date_range).
+
+## Stage 85 — column date/datetime/percent formatting
+
+Table cells declared `format: 'date' | 'datetime' | 'percent'` in section columns now render formatted in the generated DOM (`5 Oct` / `1 Oct, 23:59` / `88%`) instead of raw values. Classwork tables (due soon, classwork, gradebook, students) declare their column formats — due dates no longer render as raw ISO strings.
