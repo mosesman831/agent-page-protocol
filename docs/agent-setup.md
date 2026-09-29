@@ -39,9 +39,9 @@ Restart the client after adding it — tools appear on next launch.
 deterministic agent can shell out to:
 
 ```bash
-agent-page open https://demo-lab-app.vercel.app/app/lab/home
-agent-page read
-agent-page act inc --params '{}'
+agent-page open https://demo-lab-app.vercel.app/app/lab/counter
+agent-page state          # prints the PageDigest
+agent-page act inc delta=5   # or: --params-json '{"delta":5}'
 agent-page watch          # streams diffs
 ```
 
