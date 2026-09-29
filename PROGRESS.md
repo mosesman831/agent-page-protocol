@@ -1566,3 +1566,7 @@ Replaced the real-named demo persona ("Moses Man") with a fictional passenger �
 ## Stage 89 — agent-setup.md CLI commands fixed
 
 The use-prompt's setup doc showed three commands that didn't work: `agent-page read` (real command is `state`), `act inc --params '{}'` (flag is `--params-json`, positional KEY=VALUE also works), and it opened `/app/lab/home` where `inc` doesn't exist — now opens `/app/lab/counter`. Verified end-to-end on prod: open → state → act inc (auto version-match ctr-1→ctr-2) → returns `vnd.agent-page-diff`.
+
+## Stage 90 — version sync to 0.5.0
+
+Root, server, client, and conformance bumped 0.4.0 → 0.5.0 so every published workspace reports the v0.5 beta number (tool-core/cli/mcp were already there). Full gate re-run: 21,369 tests, 31/31 MCP feature checks, 221 extension harness assertions, 84/84 manifests, lint clean; all five domains re-verified (/, /site/, /app/, Accept negotiation, .well-known all 200).
