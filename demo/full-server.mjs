@@ -14,6 +14,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { makeMvaHandlers } from './multiversal/handlers.mjs';
+import { makeHotelHandlers } from './hotel-booking/handlers.mjs';
 import { mountSiteRoutes } from './lib/site-routes.mjs';
 
 const bump = (v) => {
@@ -613,6 +614,15 @@ export async function createFullDemoApp({
   // ---- Multiversal Airways handlers (real state mutations) ----------------
   const mvaHandlers = makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppError });
 
+  // ---- Halvern House hotel handlers (real state mutations) ----------------
+  const hotelHandlers = makeHotelHandlers({
+    origin,
+    bump,
+    storeManifest,
+    pushEvent,
+    AppError,
+  });
+
   // Generic resolver for every action id on any demo site. Lab + mva ids get
   // bespoke handlers; everything else follows output.navigates_to or echoes
   // the page (state mutation only happens where a handler stores it).
@@ -625,6 +635,11 @@ export async function createFullDemoApp({
     const isMva = ctx.manifest.page.url.includes('/app/mva/');
     if (isMva) {
       const h = mvaHandlers[ctx.actionId];
+      if (h) return h(ctx);
+    }
+    const isHotel = ctx.manifest.page.url.includes('/app/hotel/');
+    if (isHotel) {
+      const h = hotelHandlers[ctx.actionId];
       if (h) return h(ctx);
     }
     const def = ctx.manifest.actions?.[ctx.actionId];
