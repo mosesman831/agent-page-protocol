@@ -105,7 +105,7 @@ try {
     const loc = res.headers.get('location') ?? '';
     check(
       'form search → 303 /site/mva/results',
-      res.status === 303 && loc.endsWith('/site/mva/results'),
+      res.status === 303 && loc.split('?')[0].endsWith('/site/mva/results'),
       loc,
     );
     const page = await fetch(`${BASE}/site/mva/results`);
@@ -148,7 +148,7 @@ try {
     const loc = res.headers.get('location') ?? '';
     check(
       'find_booking → 303 /site/mva/booking',
-      res.status === 303 && loc.endsWith('/site/mva/booking'),
+      res.status === 303 && loc.split('?')[0].endsWith('/site/mva/booking'),
       loc,
     );
   }
@@ -178,7 +178,7 @@ try {
       const loc = second.headers.get('location') ?? '';
       check(
         'confirmed pay → 303 /site/mva/confirmation',
-        second.status === 303 && loc.endsWith('/site/mva/confirmation'),
+        second.status === 303 && loc.split('?')[0].endsWith('/site/mva/confirmation'),
         loc || `status ${second.status}`,
       );
     }

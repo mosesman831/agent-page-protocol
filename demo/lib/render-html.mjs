@@ -162,10 +162,12 @@ function cardHtml(it) {
         if (v.type === 'markdown') return `<dd class="md">${mdHtml(v.value)}</dd>`;
         if (v.type === 'array')
           return `<dd><div class="chips">${(Array.isArray(v.value) ? v.value : [])
-            .map(
-              (c) =>
-                `<span class="chip">${esc(typeof c === 'object' ? (c.value ?? '') : c)}</span>`,
-            )
+            .map((c) => {
+              const cv = c && typeof c === 'object' ? c.value : c;
+              const txt =
+                cv && typeof cv === 'object' ? (cv.name ?? cv.label ?? cv.url ?? '') : (cv ?? '');
+              return `<span class="chip">${esc(txt)}</span>`;
+            })
             .join('')}</div></dd>`;
         return `<dt>${esc(v.label ?? humanize(k))}</dt><dd>${esc(String(v.value ?? ''))}</dd>`;
       }
@@ -433,13 +435,24 @@ export function renderErrorPage({
 }
 
 /** Confirmation step for requires_confirmation actions (428 → confirm form). */
+/** Render a coerced param for a confirm template: money objects format, other objects serialize. */
+const paramText = (v) =>
+  v && typeof v === 'object'
+    ? v.amount != null
+      ? moneyFmt({ value: v.amount, unit: v.currency, scale: v.scale })
+      : JSON.stringify(v)
+    : String(v ?? '');
+
 export function renderConfirmPage({ skin, manifest, actionId, def, params, token }) {
   const url = toSite(def.action_url ?? manifest.page.url);
   const body = (def.confirm?.body_template ?? '').replace(/\{param\.(\w+)\}/g, (_, k) =>
-    esc(params[k] ?? ''),
+    esc(paramText(params[k])),
   );
   const hidden = Object.entries(params)
-    .map(([k, v]) => `<input type="hidden" name="${esc(k)}" value="${esc(v)}"/>`)
+    .map(
+      ([k, v]) =>
+        `<input type="hidden" name="${esc(k)}" value="${esc(typeof v === 'object' ? JSON.stringify(v) : v)}"/>`,
+    )
     .join('');
   return shell({
     skin,
@@ -470,7 +483,10 @@ export function renderChallengePage({
   const url = toSite(def.action_url ?? manifest.page.url);
   const param = String(challenge?.param?.value ?? 'otp');
   const hidden = Object.entries(params)
-    .map(([k, v]) => `<input type="hidden" name="${esc(k)}" value="${esc(v)}"/>`)
+    .map(
+      ([k, v]) =>
+        `<input type="hidden" name="${esc(k)}" value="${esc(typeof v === 'object' ? JSON.stringify(v) : v)}"/>`,
+    )
     .join('');
   return shell({
     skin,

@@ -176,7 +176,7 @@ export function buildServicePages(origin) {
         summary: obj(
           {
             overall: num(9.4, { label: 'Overall', max: 10 }),
-            count: str('18,412', 'Verified reviews'),
+            count: num(18412, { label: 'Verified reviews' }),
             recommended: str('96%', 'Would recommend'),
           },
           'Across the collection',

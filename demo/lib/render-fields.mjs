@@ -170,8 +170,9 @@ export function inputHtml(name, spec, values = {}, hint) {
         .join('')}</select></div>`;
     case 'number':
     case 'quantity':
-    case 'money':
       return `<div class="fld${span}">${lbl}<input type="number" id="${id}" name="${esc(name)}" value="${esc(val)}"${req}${spec.min != null ? ` min="${spec.min}"` : ''}${spec.max != null ? ` max="${spec.max}"` : ''}/>${hintTxt}</div>`;
+    case 'money':
+      return `<div class="fld${span}">${lbl}<input type="number" id="${id}" name="${esc(name)}" value="${esc(val)}"${req} step="any"${spec.min != null ? ` min="${spec.min}"` : ''}${spec.max != null ? ` max="${spec.max}"` : ''}/>${hintTxt}</div>`;
     case 'date':
       return `<div class="fld${span}">${lbl}<input type="date" id="${id}" name="${esc(name)}" value="${esc(val)}"${req}/></div>`;
     case 'datetime':
