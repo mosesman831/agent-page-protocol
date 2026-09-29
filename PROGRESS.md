@@ -1542,3 +1542,15 @@ Table cells declared `format: 'date' | 'datetime' | 'percent'` in section column
 ## Stage 86 — lab home coverage table + object-row cells
 
 Lab home `feature_index` now presents as a proper 3-column coverage table instead of cramped object cards. `tableHtml` unwraps `{type:'object', value:{...}}` rows (arr-of-obj data) to their field values, so arr-of-obj state renders inside `layout: 'table'` sections too — not just `table()` nodes with `fields`.
+
+## Stage 82 — hotel demo rebuild (Halvern House)
+
+**Why:** the hotel demo had 6 bare manifests and no skin — far below a real hotel site. Rebuilt via child session `489bb837` to the same standard as the airline.
+
+**Halvern House** (fictional boutique collection, deep teal + brass on cream, serif display): `demo/hotel-booking/skin.mjs` gives the generated DOM real hotel chrome — hero photography, booking-widget tabs, stat strips, offers promos, multi-column footer, cookie bar. 16 manifests (was 6): home, search, results, hotel, rooms, checkout, confirmation, manage, booking + new destinations, deals (incl. gift cards), dining, events, loyalty (The Circle), reviews, help — galleries, tables, cards, stat strips, breadcrumbs throughout.
+
+**Actions (17 verified live through the /site bridge):** preserved booking-flow ids (search_hotels, select_hotel, apply_filters, see_rooms, select_rate, confirm_booking, cancel_booking) + new `handlers.mjs` wired into demoDispatch (`/app/hotel/` branch): subscribe, find_booking, add_breakfast, request_upgrade, contact_house, buy_gift_card, request_table, request_quote, join_circle, vote_helpful, write_review, contact_us. 11 generated hotel photos in `demo/files/hotel-*.jpg`.
+
+**Renderer fix:** cookie-banner OK was a bare `<form method=post>` → posted with no `__action` → 400 `err.action.unknown` on every skinned site. Now a plain dismiss button — no round-trip.
+
+**Gate:** 84/84 manifests valid, site bridge 10/10, lint clean.
