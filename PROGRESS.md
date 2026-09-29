@@ -1504,3 +1504,5 @@ schema/extension-fuzz.test.mjs` → 2608 pass / 0 fail; `npm run build`
 ## Stage 76 — canonical repo links | devin/stage76-repo-rename | build 0, test 0, lint 0 | repo renamed APP-prod → agent-page-protocol; REPO constants, MCP install snippet, CONTRIBUTING, generated site data point at mosesman831/agent-page-protocol | DONE | next: create APP-specs private repo; redeploy site
 
 ## Squash — history reset | main rewritten to single root commit e01b210 | lint 0 | all pre-squash history (stages 1–76) preserved only in this file; specs live history moved to mosesman831/APP-specs (specs-export branch); prompts+archive imported there too; remote branches deleted | DONE
+
+## Stage 78 — adopt-APP prompt + migration guides | devin/stage78-adopt-prompt | build 0, test 0, lint 0 | docs/adopt-prompt.md (asks full-vs-canonical, pulls live schema, follows a guide) + canonicalmigration.md + fullmigration.md; site #adopt section w/ CopyBlock + guide cards + nav link; manifest links + README fenced copy block | DONE | next: deploy site; verify #adopt live
