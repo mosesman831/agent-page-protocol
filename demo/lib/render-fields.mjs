@@ -43,7 +43,10 @@ export function tableHtml(sec, node) {
   const rows = Array.isArray(node.value) ? node.value : [];
   const cell = (r, col, i) => {
     const idx = fields.indexOf(col.key);
-    const v = Array.isArray(r) ? r[idx >= 0 ? idx : i] : r?.[col.key];
+    let v = Array.isArray(r) ? r[idx >= 0 ? idx : i] : r?.[col.key];
+    if (v === undefined && r?.type === 'object' && r?.value) v = r.value[col.key];
+    if (v && typeof v === 'object' && typeof v.type === 'string' && 'value' in v && !isMoneyNode(v))
+      v = v.value;
     if (col.format === 'currency')
       return `<td class="r num">${esc(typeof v === 'object' && v?.value != null ? (isMoneyNode(v) ? moneyFmt(v) : v.value) : isMoneyNode(v) ? moneyFmt(v) : v)}</td>`;
     if (col.format === 'number' || col.format === 'duration_min')

@@ -154,7 +154,22 @@ export function buildLabPages(origin) {
           'Coverage',
         ),
       },
-      present: { layout: 'table', sections: [] },
+      present: {
+        layout: 'list',
+        sections: [
+          {
+            id: 'idx',
+            state_path: 'feature_index',
+            layout: 'table',
+            label: 'Coverage',
+            columns: [
+              { key: 'feature', label: 'Feature' },
+              { key: 'page', label: 'Page' },
+              { key: 'try', label: 'Try it' },
+            ],
+          },
+        ],
+      },
       actions: {
         go_counter: {
           description: 'Open counter',
