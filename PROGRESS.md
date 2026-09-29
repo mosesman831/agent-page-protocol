@@ -1520,3 +1520,17 @@ schema/extension-fuzz.test.mjs` → 2608 pass / 0 fail; `npm run build`
 **New MVA pages** (14 manifests — `content.mjs` + `services.mjs`): destinations (route network table + gallery), cabins (4-cabin cards + comparison table), baggage (allowance by cabin/fare + fees), fare-finder (28-day lowest-fare calendar component + search), travel-docs (entry rules + doc checker), assistance (services + request flow), disruption (comp rules + refund/comp claim), loyalty (tier table + join), lounges (4 lounges w/ generated imagery), partners (alliance + retail earning), help (FAQ + contact + newsletter subscribe), travel-extras (hotels/cars/insurance catalog), group (10+ quote request), about (story + fleet + facts). 5 new handlers: `check_docs`, `request_assistance`, `claim_refund` (validates booking ref), `subscribe`, `request_quote` — all verified end-to-end through the site bridge (form POST → mutate → re-rendered DOM twin).
 
 **Gate:** 50/50 manifests valid, site bridge 10/10, 17,196 tests, lint clean. Verified visually — reads as a real airline.
+
+## Stage 83 — classroom demo rebuild (Classwork)
+
+**Why:** every demo site, not just the airline, should carry the full feature surface of a real product in its category — a classroom platform needs to-do, calendar, materials, notifications, archive, help, and a real visual identity, on both readers (APP manifests + generated DOM).
+
+**Classwork demo** (`demo/google-classroom/`): 6 new manifests in `extra.mjs` — `todo` (assigned + done tables across classes), `calendar` (calendar component + upcoming grid), `materials` (sortable/filterable library table), `notifications` (feed + settings toggles), `archived` (classes table + restore note), `help` (FAQ + stats). 5 new handlers in `handlers.mjs` — `join_class` (code lookup, duplicate-enroll guard), `comment` (posts a stream entry as Ada Osei), `submit_work` (assignment status → turned_in + private comment), `attach_file` (pushes file node into your_work attachments), `toggle_notify` (settings booleans + saved notice). `skin.mjs` gives the generated DOM a Classwork identity: green palette, topbar nav (Classes / To-do / Calendar / Archived / Notifications), utility nav, promo explainer, 4-column footer, board favicon.
+
+## Stage 84 — protocol lab console
+
+**Why:** the lab is a developer console, not a consumer site — it needed its own dark console chrome plus pages that read like a console (playground, status, changelog) without breaking the 15 feature pages conformance tests depend on.
+
+**Protocol Lab** (`demo/protocol-lab/`): 3 new manifests in `pages-console.mjs` — `playground` (one action carrying every param type — text, quantity slider, money, boolean, enum, array, date, date_range — echoed back verbatim by `inspect_params`), `status` (protocol signals table + stats), `changelog` (wire releases + versioning policy). `inspect_params` handler in `full-server.mjs` echoes wire params into `state.last_echo`. `skin.mjs` adds a dark developer-console skin (mono logo, terminal palette, status/changelog links). `demo/validate.mjs` now validates lab manifests too — 74/74 valid.
+
+**Gate:** all manifest sets valid, site bridge 10/10, lint clean, wire `inspect_params` verified with every param type (quantity, money, array, date_range).
