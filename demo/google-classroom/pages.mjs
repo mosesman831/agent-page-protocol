@@ -124,7 +124,18 @@ export function buildGcPages(origin) {
             primary_action: 'open_class',
             label: 'Classes',
           },
-          { id: 'todo', state_path: 'todo', layout: 'table', label: 'Due soon' },
+          {
+            id: 'todo',
+            state_path: 'todo',
+            layout: 'table',
+            label: 'Due soon',
+            columns: [
+              { key: 'class', label: 'Class' },
+              { key: 'assignment', label: 'Assignment' },
+              { key: 'due', label: 'Due', format: 'datetime' },
+              { key: 'status', label: 'Status' },
+            ],
+          },
         ],
       },
       actions: {
@@ -385,6 +396,14 @@ export function buildGcPages(origin) {
             layout: 'table',
             primary_action: 'open_item',
             label: 'Classwork',
+            columns: [
+              { key: 'title', label: 'Title' },
+              { key: 'topic', label: 'Topic' },
+              { key: 'kind', label: 'Kind' },
+              { key: 'assigned', label: 'Assigned', format: 'date' },
+              { key: 'due', label: 'Due', format: 'datetime' },
+              { key: 'status', label: 'Status' },
+            ],
           },
         ],
       },
@@ -563,7 +582,20 @@ export function buildGcPages(origin) {
         layout: 'list',
         sections: [
           { id: 'avg', state_path: 'average', layout: 'detail', label: 'Average' },
-          { id: 'gb', state_path: 'gradebook', layout: 'table', label: 'All work' },
+          {
+            id: 'gb',
+            state_path: 'gradebook',
+            layout: 'table',
+            label: 'All work',
+            columns: [
+              { key: 'assignment', label: 'Assignment' },
+              { key: 'due', label: 'Due', format: 'date' },
+              { key: 'points', label: 'Points', format: 'number' },
+              { key: 'scored', label: 'Scored', format: 'number' },
+              { key: 'status', label: 'Status' },
+              { key: 'returned', label: 'Returned', format: 'date' },
+            ],
+          },
         ],
         components: { note: { type: 'banner', state_path: 'note' } },
       },
@@ -610,7 +642,17 @@ export function buildGcPages(origin) {
         layout: 'list',
         sections: [
           { id: 't', state_path: 'teachers', layout: 'table', label: 'Teachers' },
-          { id: 's', state_path: 'students', layout: 'table', label: 'Students' },
+          {
+            id: 's',
+            state_path: 'students',
+            layout: 'table',
+            label: 'Students',
+            columns: [
+              { key: 'name', label: 'Name' },
+              { key: 'email', label: 'Email' },
+              { key: 'last_active', label: 'Last active', format: 'datetime' },
+            ],
+          },
         ],
       },
       actions: {
