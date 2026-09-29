@@ -13,6 +13,8 @@
  */
 
 import { randomBytes } from 'node:crypto';
+import { makeMvaHandlers } from './multiversal/handlers.mjs';
+import { mountSiteRoutes } from './lib/site-routes.mjs';
 
 const bump = (v) => {
   const m = /^(.*?)(\d+)$/.exec(String(v));
@@ -29,8 +31,17 @@ const LAB_OTP = '123456';
  * @param {{express: Function, server: object}} [opts.deps] pre-imported modules —
  *   serverless bundlers (Vercel NFT) can't trace the dynamic imports above, so
  *   api/index.mjs passes `import express` + `import * as server` in explicitly.
+ * @param {Object<string, object>} [opts.skins] site -> DOM skin (see
+ *   demo/multiversal/skin.mjs) — enables the negotiated /site/<site>/<slug>
+ *   HTML surface rendered from the same manifests.
  */
-export async function createFullDemoApp({ sites, origin, log = () => {}, deps = null }) {
+export async function createFullDemoApp({
+  sites,
+  origin,
+  log = () => {},
+  deps = null,
+  skins = {},
+}) {
   const express = deps?.express ?? (await import('express')).default;
   const {
     createPageHandler,
@@ -599,13 +610,21 @@ export async function createFullDemoApp({ sites, origin, log = () => {}, deps = 
     charge: async (ctx) => labHandlers.delegated_status(ctx, 'charged', 'class:financial'),
   };
 
-  // Generic resolver for every action id on any demo site. Lab ids get their
-  // bespoke handler; everything else follows output.navigates_to or echoes the
-  // page (state mutation only happens where a lab handler stores it).
+  // ---- Multiversal Airways handlers (real state mutations) ----------------
+  const mvaHandlers = makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppError });
+
+  // Generic resolver for every action id on any demo site. Lab + mva ids get
+  // bespoke handlers; everything else follows output.navigates_to or echoes
+  // the page (state mutation only happens where a handler stores it).
   const demoDispatch = async (ctx) => {
     const isLab = ctx.manifest.page.url.includes('/app/lab/');
     if (isLab) {
       const h = labHandlers[ctx.actionId];
+      if (h) return h(ctx);
+    }
+    const isMva = ctx.manifest.page.url.includes('/app/mva/');
+    if (isMva) {
+      const h = mvaHandlers[ctx.actionId];
       if (h) return h(ctx);
     }
     const def = ctx.manifest.actions?.[ctx.actionId];
@@ -698,6 +717,11 @@ export async function createFullDemoApp({ sites, origin, log = () => {}, deps = 
       return { ok: true };
     },
   });
+
+  // ---- /site/<site>/<slug> — negotiated hybrid surface --------------------
+  // Same manifests as /app/*: Accept negotiates manifest vs generated HTML;
+  // form POSTs bridge to the real wire middleware (see lib/site-routes.mjs).
+  mountSiteRoutes(app, { origin, skins, findManifest, pageHandler, express });
 
   // Browser-session bridge: a login response carries state.session_token —
   // surface it as a `session=` cookie so the extension's credentialed fetch

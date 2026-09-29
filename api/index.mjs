@@ -26,6 +26,8 @@ import { buildBaPages } from '../demo/british-airways/pages.mjs';
 import { buildHotelPages } from '../demo/hotel-booking/pages.mjs';
 import { buildGcPages } from '../demo/google-classroom/pages.mjs';
 import { buildLabPages } from '../demo/protocol-lab/pages.mjs';
+import { buildMvaPages } from '../demo/multiversal/pages.mjs';
+import { mvaSkin } from '../demo/multiversal/skin.mjs';
 import { wellKnownManifest } from '../demo/lib/discovery.mjs';
 import { str, obj, navAction } from '../demo/lib/nodes.mjs';
 
@@ -51,7 +53,7 @@ function originOf(req) {
 // APP_DEMO_SITES=ba,hotel,gc,lab selects which demos a deployment serves —
 // each vercel project (demo-flight-app, demo-hotel-app, …) sets its own.
 const ENABLED = new Set(
-  (process.env.APP_DEMO_SITES || 'ba,hotel,gc,lab')
+  (process.env.APP_DEMO_SITES || 'ba,hotel,gc,lab,mva')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
@@ -63,6 +65,7 @@ function sitesFor(origin) {
   if (ENABLED.has('hotel')) sites.hotel = buildHotelPages(origin);
   if (ENABLED.has('gc')) sites.gc = buildGcPages(origin);
   if (ENABLED.has('lab')) sites.lab = buildLabPages(origin);
+  if (ENABLED.has('mva')) sites.mva = buildMvaPages(origin);
   for (const pages of Object.values(sites)) {
     for (const manifest of pages.values()) {
       for (const def of Object.values(manifest.actions ?? {})) {
@@ -75,6 +78,10 @@ function sitesFor(origin) {
   return sites;
 }
 
+function skinsFor(origin) {
+  return ENABLED.has('mva') ? { mva: mvaSkin(origin) } : {};
+}
+
 async function appFor(origin) {
   if (!apps.has(origin)) {
     apps.set(
@@ -82,6 +89,7 @@ async function appFor(origin) {
       createFullDemoApp({
         sites: sitesFor(origin),
         origin,
+        skins: skinsFor(origin),
         deps: { express, server: appServer },
         log: () => {},
       }),
@@ -119,6 +127,7 @@ const indexManifest = (origin) => ({
           ['hotel', 'hotel_booking', `${origin}/app/hotel/search`, 'Hotel booking'],
           ['gc', 'classroom', `${origin}/app/gc/dash`, 'Classroom'],
           ['lab', 'protocol_lab', `${origin}/app/lab/home`, 'Feature lab'],
+          ['mva', 'airline', `${origin}/app/mva/home`, 'Multiversal Airways — full airline site'],
         ]
           .filter(([site]) => ENABLED.has(site))
           .map(([, key, url, label]) => [key, str(url, label)]),
@@ -129,6 +138,9 @@ const indexManifest = (origin) => ({
   actions: {
     ...(ENABLED.has('ba')
       ? { open_flight_demo: navAction('Open the BA booking demo', `${origin}/app/ba/home`) }
+      : {}),
+    ...(ENABLED.has('mva')
+      ? { open_airline_demo: navAction('Open Multiversal Airways', `${origin}/app/mva/home`) }
       : {}),
     ...(ENABLED.has('lab')
       ? { open_lab: navAction('Open the protocol lab', `${origin}/app/lab/home`) }
@@ -157,6 +169,11 @@ const SITE_CARDS = {
     'Protocol feature lab',
     'diffs, watch, async, consent, delegate, auth — every wire feature',
     '/app/lab/home',
+  ],
+  mva: [
+    'Multiversal Airways',
+    'full airline: fares, seats, extras, pay, manage, check-in — HTML for humans, manifest for agents',
+    '/site/mva/home',
   ],
 };
 
@@ -208,10 +225,26 @@ export default async function handler(req, res) {
     return send(res, 200, JSON.stringify(wellKnownManifest(origin, { auth: true })), MEDIA_PAGE);
   }
   if (path.startsWith('/demo/files/')) {
-    return send(res, 200, STUB_PDF, 'application/pdf');
+    const name = path.slice('/demo/files/'.length).replace(/[^\w.-]/g, '');
+    try {
+      const { readFile } = await import('node:fs/promises');
+      const { extname } = await import('node:path');
+      const data = await readFile(new URL(`../demo/files/${name}`, import.meta.url));
+      const mime =
+        {
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.pdf': 'application/pdf',
+          '.ics': 'text/calendar',
+        }[extname(name)] ?? 'application/octet-stream';
+      return send(res, 200, data, mime);
+    } catch {
+      return send(res, 200, STUB_PDF, 'application/pdf');
+    }
   }
   if (
     path.startsWith('/app/') ||
+    path.startsWith('/site/') ||
     path.startsWith('/operations/') ||
     path === '/app-events' ||
     path === '/app-oauth/token'

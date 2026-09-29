@@ -108,6 +108,11 @@ STEP 6 — Validate every emitted manifest against the schema (ajv, or the
 
 const DEMOS: [string, string, string][] = [
   [
+    'Multiversal Airways',
+    'A real airline site: fares, seats, extras, pay, manage, check-in, status, loyalty. Negotiated: humans get the generated DOM site, agents get the manifest.',
+    'https://demo-flight-app.vercel.app/site/mva/home',
+  ],
+  [
     'British Airways booking',
     'Full flow: search → fares → seat map → passengers → payment → PNR.',
     'https://demo-flight-app.vercel.app/app/ba/home',
