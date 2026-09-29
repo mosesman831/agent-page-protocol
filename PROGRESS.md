@@ -1558,3 +1558,7 @@ Lab home `feature_index` now presents as a proper 3-column coverage table instea
 ## Stage 87 — fictional personas only
 
 Replaced the real-named demo persona ("Moses Man") with a fictional passenger — **Remy Ashford** — across both demos: multiversal (lead passenger, member sign-in, seed booking `MV4X8R` surname → `ashford`, card name, boarding-pass pax line `ASHFORD/REMY MR`) and Halvern House (guest name, `HVN4X8` surname → `ashford`). `demo/test-site.mjs` updated to match. LICENSE + README attribution now reads the `mosesman831` handle; `three-ideas` doc uses the fake name. `man` in `AIRPORTS_FROM` untouched — that's Manchester's IATA code.
+
+## Stage 88 — calendar day cells
+
+`present.components` `type: 'calendar'` now renders real day cells: unwraps `{type:'object'}` rows to their fields (fare days are `obj({date, price})` nodes, not plain objects), and falls back to the first non-date scalar field when `price` is absent — fare-finder shows 28 £-priced days with the lowest highlighted; classwork calendar shows per-day due counts. Previously both rendered empty pills.
