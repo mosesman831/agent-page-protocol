@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { buildBaPages } from './british-airways/pages.mjs';
 import { buildHotelPages } from './hotel-booking/pages.mjs';
 import { buildGcPages } from './google-classroom/pages.mjs';
+import { buildMvaPages } from './multiversal/pages.mjs';
 import { classifyDocument } from '../extension/protocol/parse.js';
 import { validateManifest } from '../extension/protocol/validate.js';
 
@@ -31,6 +32,7 @@ const SITES = {
   ba: buildBaPages(ORIGIN),
   hotel: buildHotelPages(ORIGIN),
   gc: buildGcPages(ORIGIN),
+  mva: buildMvaPages(ORIGIN),
 };
 
 let count = 0;

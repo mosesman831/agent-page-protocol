@@ -24,6 +24,8 @@ import { buildBaPages } from './british-airways/pages.mjs';
 import { buildHotelPages } from './hotel-booking/pages.mjs';
 import { buildGcPages } from './google-classroom/pages.mjs';
 import { buildLabPages } from './protocol-lab/pages.mjs';
+import { buildMvaPages } from './multiversal/pages.mjs';
+import { mvaSkin } from './multiversal/skin.mjs';
 import { wellKnownManifest } from './lib/discovery.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url)); // repo root
@@ -51,7 +53,9 @@ const SITES = {
   hotel: buildHotelPages(ORIGIN),
   gc: buildGcPages(ORIGIN),
   lab: buildLabPages(ORIGIN),
+  mva: buildMvaPages(ORIGIN),
 };
+const SKINS = { mva: mvaSkin(ORIGIN) };
 
 // Full protocol stack (negotiation, etag/304, idempotency, confirmation,
 // diffs, async, rate-limit, challenges) via the real @agent-page/server
@@ -63,6 +67,7 @@ try {
   fullApp = await createFullDemoApp({
     sites: SITES,
     origin: ORIGIN,
+    skins: SKINS,
     log: (m) => console.log('[full]', m),
   });
 } catch (e) {
@@ -175,6 +180,21 @@ const server = createServer(async (req, res) => {
     return sendJson(res, 200, pagesIndex());
   }
   if (isGet && path.startsWith('/demo/files/')) {
+    // Real files under demo/files/ first (images, documents); stub PDF fallback.
+    const rel = normalize(join('demo/files', path.slice('/demo/files/'.length)));
+    const abs = normalize(join(ROOT, rel));
+    if (abs.startsWith(join(ROOT, 'demo/files'))) {
+      try {
+        const data = await readFile(abs);
+        res.writeHead(200, {
+          'content-type': MIME[extname(abs)] || 'application/octet-stream',
+          'cache-control': 'public, max-age=300',
+        });
+        return res.end(data);
+      } catch {
+        /* fall through to stub */
+      }
+    }
     res.writeHead(200, { 'content-type': 'application/pdf', 'cache-control': 'no-store' });
     return res.end(STUB_PDF);
   }
@@ -193,6 +213,7 @@ const server = createServer(async (req, res) => {
   if (
     fullApp &&
     (path.startsWith('/app/') ||
+      path.startsWith('/site/') ||
       path.startsWith('/operations/') ||
       path === '/app-events' ||
       path === '/app-oauth/token')
@@ -200,7 +221,7 @@ const server = createServer(async (req, res) => {
     return fullApp(req, res);
   }
 
-  const appMatch = /^\/app\/(ba|hotel|gc|lab)\/([a-z0-9-]+)$/.exec(path);
+  const appMatch = /^\/app\/(ba|hotel|gc|lab|mva)\/([a-z0-9-]+)$/.exec(path);
   if (appMatch) {
     const [, site, slug] = appMatch;
     const manifest = SITES[site]?.get(slug);
