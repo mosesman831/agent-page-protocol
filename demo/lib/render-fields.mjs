@@ -5,7 +5,7 @@
  * Action Requests.
  */
 
-import { esc, moneyFmt, humanize, toSite, isMoneyNode } from './render-shared.mjs';
+import { esc, moneyFmt, humanize, toSite, formActionUrl, isMoneyNode } from './render-shared.mjs';
 import { cellText, innerDl, nodeHtml } from './render-html.mjs';
 
 export function paramHints(components = {}) {
@@ -192,7 +192,7 @@ export function inputHtml(name, spec, values = {}, hint) {
 }
 
 export function actionHtml(id, def, manifest, values = {}, hints = {}, opts = {}) {
-  const url = toSite(def.action_url ?? manifest.page.url);
+  const url = formActionUrl(def.action_url, manifest.page.url);
   const ver = manifest.page.version;
   const secretSet = new Set(def.policy?.secret_params ?? []);
   const hasInput = def.input && Object.keys(def.input).length;

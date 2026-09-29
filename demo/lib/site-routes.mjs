@@ -180,9 +180,12 @@ export function mountSiteRoutes(app, { origin, skins = {}, findManifest, pageHan
         req._body = true;
         req.body = { app: '1.1', action: actionId, params };
         // The middleware routes on req.originalUrl (absoluteUrl()) — point
-        // both at the manifest path, not the /site form path.
-        req.url = pathname;
-        req.originalUrl = pathname;
+        // both at the manifest path, not the /site form path. Keep the query:
+        // the page's options/state were query-derived, so the wire lookup
+        // must resolve the same derived manifest.
+        const siteQs = new URLSearchParams(req.query).toString();
+        req.url = siteQs ? `${pathname}?${siteQs}` : pathname;
+        req.originalUrl = req.url;
         pageHandler(req, res, (err) => {
           done({
             status: 502,

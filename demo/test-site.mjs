@@ -108,9 +108,23 @@ try {
       res.status === 303 && loc.split('?')[0].endsWith('/site/mva/results'),
       loc,
     );
-    const page = await fetch(`${BASE}/site/mva/results`);
+    const page = await fetch(`${BASE}/site/mva/results?from=lhr&to=jfk&depart=2026-10-12`);
     const html = await page.text();
     check('results page renders flights', html.includes('MV') && html.includes('Saver'));
+    // Derived-option select: flight_id options come from the URL query — a
+    // POST to the queried page must resolve the same derived manifest.
+    const fid = html.match(/name="flight_id"[^>]*>[\s\S]*?<option[^>]*value="([^"]+)"/)?.[1];
+    const sel = await form(`/site/mva/results?from=lhr&to=jfk&depart=2026-10-12`, {
+      __action: 'select_outbound',
+      flight_id: fid ?? 'mv0',
+      fare: 'classic',
+    });
+    const selLoc = sel.headers.get('location') ?? '';
+    check(
+      'derived select_outbound → 303',
+      sel.status === 303 && selLoc.includes('/site/mva/results-return'),
+      `${sel.status} ${selLoc}`,
+    );
   }
 
   // 4. Mutate re-render: select an available exit-row seat

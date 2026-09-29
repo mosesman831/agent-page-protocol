@@ -26,5 +26,25 @@ export const humanize = (k) =>
 /** site-relative path: /app/<site>/<slug> -> /site/<site>/<slug> */
 export const toSite = (url) => String(url ?? '').replace(/\/app\//, '/site/');
 
+/**
+ * Form action URL for POSTs: when an action posts back to its own page and
+ * declares no query of its own, inherit the page's query — the rendered
+ * options/state were derived from it, so the POST must resolve the same
+ * derived manifest (serverless instances are stateless).
+ */
+export const formActionUrl = (actionUrl, pageUrl) => {
+  const a = String(actionUrl ?? pageUrl ?? '');
+  if (!pageUrl) return toSite(a);
+  try {
+    const p = new URL(pageUrl, 'http://x');
+    const u = new URL(a, 'http://x');
+    if (u.pathname === p.pathname && !u.search && p.search)
+      return toSite(`${u.pathname}${p.search}`);
+  } catch {
+    /* fall through */
+  }
+  return toSite(a);
+};
+
 export const isMoneyNode = (v) =>
   v && typeof v === 'object' && v.unit && Number.isFinite(Number(v.value));

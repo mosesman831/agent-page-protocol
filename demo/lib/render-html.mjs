@@ -15,7 +15,7 @@
  */
 
 import { siteCss } from './skin-css.mjs';
-import { esc, moneyFmt, humanize, toSite, isMoneyNode } from './render-shared.mjs';
+import { esc, moneyFmt, humanize, toSite, formActionUrl, isMoneyNode } from './render-shared.mjs';
 import { paramHints, actionHtml, inputHtml, sectionHtml } from './render-fields.mjs';
 
 /* ---------------- node renderers ---------------- */
@@ -444,7 +444,7 @@ const paramText = (v) =>
     : String(v ?? '');
 
 export function renderConfirmPage({ skin, manifest, actionId, def, params, token }) {
-  const url = toSite(def.action_url ?? manifest.page.url);
+  const url = formActionUrl(def.action_url, manifest.page.url);
   const body = (def.confirm?.body_template ?? '').replace(/\{param\.(\w+)\}/g, (_, k) =>
     esc(paramText(params[k])),
   );
@@ -480,7 +480,7 @@ export function renderChallengePage({
   challengeId,
   challenge,
 }) {
-  const url = toSite(def.action_url ?? manifest.page.url);
+  const url = formActionUrl(def.action_url, manifest.page.url);
   const param = String(challenge?.param?.value ?? 'otp');
   const hidden = Object.entries(params)
     .map(
@@ -551,7 +551,7 @@ export function renderPage(manifest, { skin }) {
     tabs || heroAction
       ? `<div class="widget"><div class="wbody">${tabs}${
           heroAction
-            ? `<form method="post" action="${esc(toSite(heroAction.action_url ?? manifest.page.url))}"><input type="hidden" name="__action" value="${esc(heroActionId)}"/><input type="hidden" name="__version" value="${esc(manifest.page.version)}"/><div class="fgrid">${Object.entries(
+            ? `<form method="post" action="${esc(formActionUrl(heroAction.action_url, manifest.page.url))}"><input type="hidden" name="__action" value="${esc(heroActionId)}"/><input type="hidden" name="__version" value="${esc(manifest.page.version)}"/><div class="fgrid">${Object.entries(
                 heroAction.input ?? {},
               )
                 .map(([name, spec]) => inputHtml(name, spec, {}, (hints[heroActionId] ?? {})[name]))
