@@ -1562,3 +1562,7 @@ Replaced the real-named demo persona ("Moses Man") with a fictional passenger �
 ## Stage 88 — calendar day cells
 
 `present.components` `type: 'calendar'` now renders real day cells: unwraps `{type:'object'}` rows to their fields (fare days are `obj({date, price})` nodes, not plain objects), and falls back to the first non-date scalar field when `price` is absent — fare-finder shows 28 £-priced days with the lowest highlighted; classwork calendar shows per-day due counts. Previously both rendered empty pills.
+
+## Stage 89 — agent-setup.md CLI commands fixed
+
+The use-prompt's setup doc showed three commands that didn't work: `agent-page read` (real command is `state`), `act inc --params '{}'` (flag is `--params-json`, positional KEY=VALUE also works), and it opened `/app/lab/home` where `inc` doesn't exist — now opens `/app/lab/counter`. Verified end-to-end on prod: open → state → act inc (auto version-match ctr-1→ctr-2) → returns `vnd.agent-page-diff`.
