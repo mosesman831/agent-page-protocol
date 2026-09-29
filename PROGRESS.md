@@ -1570,3 +1570,7 @@ The use-prompt's setup doc showed three commands that didn't work: `agent-page r
 ## Stage 90 — version sync to 0.5.0
 
 Root, server, client, and conformance bumped 0.4.0 → 0.5.0 so every published workspace reports the v0.5 beta number (tool-core/cli/mcp were already there). Full gate re-run: 21,369 tests, 31/31 MCP feature checks, 221 extension harness assertions, 84/84 manifests, lint clean; all five domains re-verified (/, /site/, /app/, Accept negotiation, .well-known all 200).
+
+## Stage 91 — cold-instance self-heal (serverless state resets)
+
+Live demos hit `app.err.diff.conflict` whenever a POST landed on a fresh Vercel instance: every instance re-seeds worlds in memory, so a client holding `res-2` from a dead instance 409ed forever against `res-1`. Fix (demo layer, protocol untouched): while a manifest is still at its seed version on this instance — unmutated, so no real concurrent write could exist — a mismatched `X-APP-If-Match-Version`/`__version` is retargeted to the current version and the action applies to the seeded world. Once a world is mutated past seed, mismatches keep their real 409. Verified: stale-on-seed applies (counter inc → diff; gc form join → 200), stale-on-mutated still 409s on both wire and DOM paths. Persistent fix remains a shared store (KV).
