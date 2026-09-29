@@ -368,13 +368,32 @@ function componentHtml(comp, state, actions, manifest) {
     return `<div class="chart">${comp.label ? `<h4>${esc(comp.label)}</h4>` : ''}${chartSvg(node, comp.chart_kind ?? 'bar')}</div>`;
   if (type === 'calendar') {
     const list = Array.isArray(node?.value) ? node.value : [];
-    const prices = list.map((d) => Number(d?.price?.value ?? d?.price ?? Infinity));
-    const min = Math.min(...prices.filter(Number.isFinite), Infinity);
+    const day = (d) => (d?.type === 'object' && d?.value ? d.value : d) ?? {};
+    const priceOf = (d) => {
+      const f = day(d);
+      const p = f.price;
+      return typeof p === 'object' ? Number(p.value ?? NaN) : Number(p ?? NaN);
+    };
+    const prices = list.map(priceOf).filter(Number.isFinite);
+    const min = prices.length ? Math.min(...prices) : Infinity;
     return `<div class="cal"><h4>${esc(comp.label ?? node?.label ?? 'Calendar')}</h4><div class="calgrid">${list
-      .map(
-        (d) =>
-          `<div class="calday${(d?.price?.value ?? d?.price) === min ? ' low' : ''}"><span>${esc(String(d?.date?.value ?? d?.date ?? '').slice(5))}</span><strong>${esc(d?.price?.value ? moneyFmt(d.price) : (d?.price ?? ''))}</strong></div>`,
-      )
+      .map((d) => {
+        const f = day(d);
+        const p =
+          f.price ??
+          Object.entries(f).find(
+            ([k, v]) => k !== 'date' && (typeof v !== 'object' || v?.value != null),
+          )?.[1];
+        const dt = f.date;
+        const priceTxt =
+          typeof p === 'object' && p?.value != null
+            ? isMoneyNode(p)
+              ? moneyFmt(p)
+              : p.value
+            : (p ?? '');
+        const dateTxt = String(typeof dt === 'object' ? (dt?.value ?? '') : (dt ?? '')).slice(5);
+        return `<div class="calday${priceOf(d) === min ? ' low' : ''}"><span>${esc(dateTxt)}</span><strong>${esc(priceTxt)}</strong></div>`;
+      })
       .join('')}</div></div>`;
   }
   if (type === 'stepper' && node) {
