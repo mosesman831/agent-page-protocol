@@ -152,5 +152,48 @@ export function makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppErr
         );
         next.state.order.value.status.value = `awaiting_payment (${pts} points applied)`;
       }),
+
+    /* ---- content & service page actions ---- */
+    check_docs: async (ctx) =>
+      mutate(ctx, (next) => {
+        const dest = String(ctx.params.to ?? '').toUpperCase();
+        const nat = String(ctx.params.nationality ?? 'gb');
+        const rows = {
+          gb: 'UK passport: ESTA/visa rules in the table apply; passport valid for your stay.',
+          ie: 'Irish passport: same UK/US rules; EU residents card not needed for visits.',
+          us: 'US passport: check return rules — most destinations visa-free under 90 days.',
+        };
+        next.state.docs_result.value = `${dest} travel, ${nat.toUpperCase()} passport — ${rows[nat] ?? 'Verify requirements with the destination embassy — rules vary.'}`;
+      }),
+
+    request_assistance: async (ctx) =>
+      mutate(ctx, (next) => {
+        const ref = String(ctx.params.booking_ref ?? '').toUpperCase() || 'your next booking';
+        const kind = String(ctx.params.type ?? 'mobility').replaceAll('_', ' ');
+        next.state.request_logged.value = `Request logged: ${kind} assistance for ${ref}. Our care team confirms within 24h — ref MV-A${String(ref).length}${Math.floor(((kind.length * 371) % 900) + 100)}.`;
+      }),
+
+    claim_refund: async (ctx) =>
+      mutate(ctx, (next) => {
+        const ref = String(ctx.params.booking_ref ?? '').toUpperCase();
+        const ok = ['MV4X8R', 'MV9T2Q'].includes(ref);
+        if (!ok)
+          throw new AppError('app.err.validation.param_value', {
+            message: `No booking found for ${ref}`,
+          });
+        const kind = String(ctx.params.claim_type ?? 'refund');
+        next.state.claim_status.value = `Claim opened: ${kind} for ${ref} (${String(ctx.params.surname).toLowerCase()}) — case MV-C${Math.floor(((ref.charCodeAt(0) * 97) % 900) + 100)}. We answer within 14 days.`;
+      }),
+
+    subscribe: async (ctx) =>
+      mutate(ctx, (next) => {
+        next.state.subscribed.value = `Subscribed: ${String(ctx.params.email ?? '')} — deals every Tuesday, no spam in any timeline.`;
+      }),
+
+    request_quote: async (ctx) =>
+      mutate(ctx, (next) => {
+        const n = Number(ctx.params.passengers ?? 10);
+        next.state.quote_status.value = `Quote requested: ${n} passengers to ${ctx.params.to} departing ${ctx.params.depart}. A coordinator emails ${ctx.params.email} within 1 working day — ref MV-G${n}${Math.floor(((String(ctx.params.contact_name).length * 137) % 90) + 10)}.`;
+      }),
   };
 }

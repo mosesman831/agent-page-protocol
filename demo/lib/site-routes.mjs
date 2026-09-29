@@ -63,8 +63,21 @@ export function mountSiteRoutes(app, { origin, skins = {}, findManifest, pageHan
         if (spec.type === 'boolean') params[k] = false; // unchecked checkbox posts nothing
         continue;
       }
-      if (spec.type === 'number' || spec.type === 'quantity') params[k] = Number(v);
+      if (spec.type === 'money')
+        params[k] = {
+          amount: Math.round(Number(v) * 10 ** (spec.scale ?? 2)),
+          ...(spec.currency ? { currency: spec.currency } : {}),
+          ...(spec.scale != null ? { scale: spec.scale } : {}),
+        };
+      else if (spec.type === 'number' || spec.type === 'quantity') params[k] = Number(v);
       else if (spec.type === 'boolean') params[k] = v === 'on' || v === 'true' || v === true;
+      else if (spec.type === 'array')
+        params[k] = Array.isArray(v)
+          ? v
+          : String(v)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
       else params[k] = v;
     }
     return params;
