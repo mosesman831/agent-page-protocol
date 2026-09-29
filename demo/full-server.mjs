@@ -73,9 +73,12 @@ export async function createFullDemoApp({
   // ---- mutable state -------------------------------------------------------
   // livePages: pathname -> manifest (cloned on read; handlers store mutations)
   const livePages = new Map();
+  const seedVersions = new Map(); // pathname -> version as seeded at init
   for (const pages of Object.values(sites)) {
     for (const manifest of pages.values()) {
-      livePages.set(new URL(manifest.page.url).pathname, manifest);
+      const path = new URL(manifest.page.url).pathname;
+      livePages.set(path, manifest);
+      seedVersions.set(path, manifest.page.version);
     }
   }
   const findManifest = (pathname) => livePages.get(pathname) ?? null;
@@ -758,10 +761,38 @@ export async function createFullDemoApp({
     },
   });
 
+  // Cold-instance self-heal: a fresh serverless instance re-seeds every world,
+  // so a client that pinned a version a dead instance produced would 409 on
+  // every subsequent If-Match action forever. While a manifest is still at its
+  // seed version on this instance (unmutated), a mismatch can only mean the
+  // client came from a different universe — retarget the pinned version to the
+  // current one so the action applies to the seeded world (wire clients send
+  // X-APP-If-Match-Version; /site/ form posts carry __version, which the site
+  // bridge turns into that header). Once the world has been mutated past
+  // seed, a mismatch is a real concurrent-write conflict and the middleware
+  // keeps its 409. Real deployments should use a shared store.
+  app.use((req, res, next) => {
+    if (req.method !== 'POST' || !req.path.startsWith('/app/')) return next();
+    const sent = req.headers['x-app-if-match-version'];
+    const manifest = sent == null ? null : findManifest(req.path);
+    const serverVersion = manifest?.page?.version;
+    if (serverVersion && serverVersion !== sent && serverVersion === seedVersions.get(req.path)) {
+      req.headers['x-app-if-match-version'] = serverVersion;
+    }
+    next();
+  });
+
   // ---- /site/<site>/<slug> — negotiated hybrid surface --------------------
   // Same manifests as /app/*: Accept negotiates manifest vs generated HTML;
   // form POSTs bridge to the real wire middleware (see lib/site-routes.mjs).
-  mountSiteRoutes(app, { origin, skins, findManifest, pageHandler, express });
+  mountSiteRoutes(app, {
+    origin,
+    skins,
+    findManifest,
+    pageHandler,
+    express,
+    seedVersionOf: (pathname) => seedVersions.get(pathname),
+  });
 
   // Browser-session bridge: a login response carries state.session_token —
   // surface it as a `session=` cookie so the extension's credentialed fetch
