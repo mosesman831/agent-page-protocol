@@ -1538,3 +1538,7 @@ schema/extension-fuzz.test.mjs` → 2608 pass / 0 fail; `npm run build`
 ## Stage 85 — column date/datetime/percent formatting
 
 Table cells declared `format: 'date' | 'datetime' | 'percent'` in section columns now render formatted in the generated DOM (`5 Oct` / `1 Oct, 23:59` / `88%`) instead of raw values. Classwork tables (due soon, classwork, gradebook, students) declare their column formats — due dates no longer render as raw ISO strings.
+
+## Stage 86 — lab home coverage table + object-row cells
+
+Lab home `feature_index` now presents as a proper 3-column coverage table instead of cramped object cards. `tableHtml` unwraps `{type:'object', value:{...}}` rows (arr-of-obj data) to their field values, so arr-of-obj state renders inside `layout: 'table'` sections too — not just `table()` nodes with `fields`.
