@@ -16,6 +16,7 @@ import {
   navAction,
   doc,
 } from '../lib/nodes.mjs';
+import { buildGcExtraPages } from './extra.mjs';
 
 const GC = (o, slug) => `${o}/app/gc/${slug}`;
 
@@ -624,5 +625,5 @@ export function buildGcPages(origin) {
     }),
   );
 
-  return pages;
+  return new Map([...pages, ...buildGcExtraPages(origin)]);
 }
