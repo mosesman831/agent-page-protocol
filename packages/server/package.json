@@ -1,6 +1,6 @@
 {
   "name": "@agent-page/server",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Agent Page Protocol (APP) reference server middleware",
   "type": "module",
   "main": "./dist/index.js",
