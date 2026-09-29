@@ -28,8 +28,14 @@ const MEDIA_ACTION = 'application/vnd.agent-page-action+json';
  * @param {(pathname: string) => object|null} opts.findManifest
  * @param {Function} opts.pageHandler the createPageHandler() middleware
  * @param {Function} opts.express express module (for urlencoded)
+ * @param {(pathname: string) => string|undefined} [opts.seedVersionOf] version
+ *   the manifest had at instance init — lets the form bridge resync stale
+ *   __version pins onto a freshly-seeded (unmutated) world instead of 409ing.
  */
-export function mountSiteRoutes(app, { origin, skins = {}, findManifest, pageHandler, express }) {
+export function mountSiteRoutes(
+  app,
+  { origin, skins = {}, findManifest, pageHandler, express, seedVersionOf },
+) {
   const siteSkin = (site) => skins[site] ?? { brand: site, appUrl: `${origin}/app/${site}/home` };
   const siteSlug = (req) => `/app/${req.params.site}/${req.params.slug}`;
 
@@ -216,7 +222,16 @@ export function mountSiteRoutes(app, { origin, skins = {}, findManifest, pageHan
     req.headers['x-app-idempotency-key'] =
       req.headers['x-app-idempotency-key'] ?? `html_${randomBytes(8).toString('hex')}`;
     req.headers['x-app-origin'] = req.headers['x-app-origin'] ?? req.headers.origin ?? origin;
-    if (__version) req.headers['x-app-if-match-version'] = String(__version);
+    // Fresh-world resync: if this instance never mutated the manifest (still
+    // at its seed version), a stale __version came from a dead instance —
+    // pin the current version so the wire 409 doesn't fire on cold starts.
+    const healed =
+      __version != null &&
+      seedVersionOf?.(pathname) &&
+      manifest.page?.version === seedVersionOf(pathname)
+        ? manifest.page.version
+        : __version;
+    if (healed) req.headers['x-app-if-match-version'] = String(healed);
     if (__confirm) req.headers['x-app-confirmation'] = String(__confirm);
     if (__challenge) req.headers['x-app-challenge'] = String(__challenge);
     // body-parser's stream was consumed by urlencoded above; flag it so the
