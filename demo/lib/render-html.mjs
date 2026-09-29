@@ -3,37 +3,31 @@
  * installed. One canonical document (the manifest) renders to semantic HTML:
  * state nodes → elements, present.components → richer widgets, actions →
  * links/forms, errors → an error card. The form-POST bridge in
- * full-server.mjs turns these submissions back into wire Action Requests, so
+ * site-routes.mjs turns these submissions back into wire Action Requests, so
  * DOM users and agents share one flow.
  *
- * Pure functions + small inline CSS vars from the site skin — no JS needed on
- * the page (progressive enhancement: forms post and reload).
+ * Skin contract (demo/<site>/skin.mjs):
+ *   brand, homeUrl, appUrl, logoHtml, dark, colors{acc,acc2,bg,card,ink,dim,line,
+ *   topBg,topInk,footBg,footInk}, nav[], utilityNav[], heroes{slug:{img,heading,
+ *   sub}}, heroTabs[{label,url,slug}], heroForm{slug:actionId}, strips{slug:
+ *   [{value,label}]}, promos{slug:html}, footerColumns[{heading,links}],
+ *   footerNote, cookieBanner, cookieText, extraCss.
  */
 
-const esc = (s) =>
-  String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-
-const moneyFmt = (n) => {
-  const unit = n.unit ?? 'GBP';
-  const scale = n.scale ?? 2;
-  return `${unit === 'GBP' ? '£' : unit + ' '}${(Number(n.value) / 10 ** scale).toLocaleString('en-GB', { minimumFractionDigits: scale, maximumFractionDigits: scale })}`;
-};
-
-const humanize = (k) =>
-  String(k)
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-/** site-relative path: /app/<site>/<slug> -> /site/<site>/<slug> */
-const toSite = (url) => String(url ?? '').replace(/\/app\//, '/site/');
+import { siteCss } from './skin-css.mjs';
+import { esc, moneyFmt, humanize, toSite, isMoneyNode } from './render-shared.mjs';
+import { paramHints, actionHtml, inputHtml, sectionHtml } from './render-fields.mjs';
 
 /* ---------------- node renderers ---------------- */
 
-function nodeHtml(node, key = '') {
+const stars = (value, max = 5) => {
+  const full = Math.round(Number(value) || 0);
+  let out = '';
+  for (let i = 0; i < max; i++) out += `<span${i < full ? '' : ' class="dim"'}>★</span>`;
+  return `<span class="stars">${out}</span>`;
+};
+
+export function nodeHtml(node, key = '') {
   if (node == null) return '';
   const t = node.type;
   const label = node.label ? `<dt>${esc(node.label)}</dt>` : '';
@@ -57,15 +51,17 @@ function nodeHtml(node, key = '') {
     }
     case 'quantity':
       return `${label}<dd>${esc(node.value)} ${esc(node.unit ?? '')}</dd>`;
-    case 'scale':
-      return `${label}<dd>${esc(node.value)}/${esc(node.max ?? 10)}</dd>`;
+    case 'scale': {
+      const max = node.max ?? 5;
+      return `${label}<dd>${max <= 5 ? stars(node.value, max) : `${esc(node.value)}/${esc(max)}`}</dd>`;
+    }
     case 'enum': {
       const txt = node.option_labels?.[node.value] ?? node.value;
       return `${label}<dd><span class="chip">${esc(txt)}</span></dd>`;
     }
     case 'geopoint': {
       const v = node.value ?? {};
-      return `${label}<dd>${esc(v.lat ?? '')}, ${esc(v.lng ?? '')}</dd>`;
+      return `${label}<dd><span class="pin">📍</span> ${esc(v.label ?? '')} <a href="https://www.openstreetmap.org/?mlat=${esc(v.lat)}&mlon=${esc(v.lng)}#map=14/${esc(v.lat)}/${esc(v.lng)}" rel="noopener">map</a></dd>`;
     }
     case 'null':
       return `${label}<dd class="dim">—</dd>`;
@@ -82,6 +78,10 @@ function nodeHtml(node, key = '') {
     }
     case 'media': {
       const items = Array.isArray(node.value) ? node.value : [];
+      if (items.length === 1) {
+        const it = items[0];
+        return `<figure class="gitem wide"><img src="${esc(it.url ?? it.src ?? '')}" alt="${esc(it.alt ?? '')}" loading="lazy"/></figure>`;
+      }
       return `<div class="gallery">${items
         .map((it) => {
           const url = it.url ?? it.src ?? '';
@@ -93,31 +93,21 @@ function nodeHtml(node, key = '') {
     case 'tree':
       return `<div class="tree">${treeHtml(node.value)}</div>`;
     case 'order': {
-      const items = Array.isArray(node.value) ? node.value : [];
-      return `${label}<dd><ol>${items.map((i) => `<li>${esc(typeof i === 'object' ? (i.value ?? JSON.stringify(i)) : i)}</li>`).join('')}</ol></dd>`;
+      const v = node.value;
+      const items = Array.isArray(v) ? v : Array.isArray(v?.items) ? v.items : [];
+      const txt = (i) =>
+        typeof i === 'object' ? (i.label ?? i.value ?? i.title ?? JSON.stringify(i)) : i;
+      return `${label}<dd><ol class="orderlist">${items.map((i) => `<li>${esc(txt(i))}</li>`).join('')}</ol></dd>`;
     }
     case 'array': {
       const items = Array.isArray(node.value) ? node.value : [];
-      return `<div class="cards" data-key="${esc(key)}">${items
-        .map((it) => {
-          if (it && typeof it === 'object' && it.type)
-            return `<article class="card"><dl>${innerDl(it)}</dl></article>`;
-          if (it && typeof it === 'object')
-            return `<article class="card"><dl>${Object.entries(it)
-              .map(
-                ([k, v]) =>
-                  `<dt>${esc(humanize(k))}</dt><dd>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</dd>`,
-              )
-              .join('')}</dl></article>`;
-          return `<article class="card">${esc(it)}</article>`;
-        })
-        .join('')}</div>`;
+      return `<div class="cards" data-key="${esc(key)}">${items.map(cardHtml).join('')}</div>`;
     }
     case 'table': {
       const fields = Object.keys(node.fields ?? {});
       const rows = Array.isArray(node.value) ? node.value : [];
       return `<div class="tblwrap"><table><thead><tr>${fields
-        .map((f) => `<th>${esc(humanize(f))}</th>`)
+        .map((f) => `<th>${esc(node.fields[f]?.label ?? humanize(f))}</th>`)
         .join('')}</tr></thead><tbody>${rows
         .map(
           (r) =>
@@ -135,6 +125,56 @@ function nodeHtml(node, key = '') {
   }
 }
 
+/** One array item → a card. Image-first when the item carries a media/url/image field. */
+function cardHtml(it) {
+  if (!it || typeof it !== 'object')
+    return `<article class="card"><div class="cb">${esc(it)}</div></article>`;
+  if (it.type === 'media') return `<article class="card">${nodeHtml(it)}</article>`;
+  const entries = it.type ? Object.entries(it.value ?? {}) : Object.entries(it);
+  let img = '';
+  const rows = [];
+  for (const [k, v] of entries) {
+    const n = it.type ? v : v;
+    if (
+      n &&
+      typeof n === 'object' &&
+      n.type === 'media' &&
+      Array.isArray(n.value) &&
+      n.value[0]?.url
+    ) {
+      img = `<img class="cardimg" src="${esc(n.value[0].url)}" alt="${esc(n.value[0].alt ?? '')}" loading="lazy"/>`;
+      continue;
+    }
+    if (!it.type && typeof v === 'string' && /^https?:\/\/.*\.(jpe?g|png|webp)$/i.test(v)) {
+      img = `<img class="cardimg" src="${esc(v)}" alt="${esc(k)}" loading="lazy"/>`;
+      continue;
+    }
+    rows.push([k, n]);
+  }
+  const dl = rows
+    .map(([k, v]) => {
+      if (v && typeof v === 'object' && v.type) {
+        if (v.type === 'scale') return `<dd>${stars(v.value, v.max ?? 5)}</dd>`;
+        if (isMoneyNode(v) || (v.type === 'number' && v.unit))
+          return `<dd><span class="price">${esc(moneyFmt(v))}</span></dd>`;
+        if (v.type === 'boolean')
+          return `<dd><span class="chip ${v.value ? 'yes' : 'no'}">${v.value ? 'Yes' : 'No'}</span></dd>`;
+        if (v.type === 'markdown') return `<dd class="md">${mdHtml(v.value)}</dd>`;
+        if (v.type === 'array')
+          return `<dd><div class="chips">${(Array.isArray(v.value) ? v.value : [])
+            .map(
+              (c) =>
+                `<span class="chip">${esc(typeof c === 'object' ? (c.value ?? '') : c)}</span>`,
+            )
+            .join('')}</div></dd>`;
+        return `<dt>${esc(v.label ?? humanize(k))}</dt><dd>${esc(String(v.value ?? ''))}</dd>`;
+      }
+      return `<dt>${esc(humanize(k))}</dt><dd>${esc(String(v ?? ''))}</dd>`;
+    })
+    .join('');
+  return `<article class="card">${img}<div class="cb"><dl>${dl}</dl></div></article>`;
+}
+
 const sandboxTokens = (n) =>
   [
     n.sandbox?.allow_scripts ? 'allow-scripts' : null,
@@ -145,14 +185,15 @@ const sandboxTokens = (n) =>
     .filter(Boolean)
     .join(' ');
 
-function innerDl(node) {
+export function innerDl(node) {
   return Object.entries(node.value ?? {})
     .map(([k, v]) => nodeHtml(v, k))
     .join('');
 }
 
-function cellText(c) {
-  if (c && typeof c === 'object' && 'value' in c) return c.value;
+export function cellText(c) {
+  if (c && typeof c === 'object' && 'value' in c)
+    return isMoneyNode(c) || c.unit ? moneyFmt(c) : c.value;
   return c;
 }
 
@@ -183,12 +224,12 @@ function mdHtml(src) {
           /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
           '<a href="$2" rel="noopener noreferrer">$1</a>',
         );
-    if (/^#{1,3}\s/.test(l)) {
+    if (/^#{1,4}\s/.test(l)) {
       if (list) {
         html += '</ul>';
         list = false;
       }
-      const level = l.match(/^#+/)[0].length + 2;
+      const level = Math.min(5, l.match(/^#+/)[0].length + 2);
       html += `<h${level}>${inline(l.replace(/^#+\s*/, ''))}</h${level}>`;
     } else if (/^[-*]\s/.test(l)) {
       if (!list) {
@@ -213,111 +254,150 @@ function mdHtml(src) {
   return html;
 }
 
-/* ---------------- sections / components ---------------- */
+/* ---------------- components ---------------- */
 
-function componentHtml(comp, state) {
+function chartSvg(node, kind) {
+  const fields = Object.keys(node?.fields ?? {});
+  const rows = Array.isArray(node?.value) ? node.value : [];
+  if (!fields.length || !rows.length) return '';
+  const pts = rows.map((r) => Number(cellText(Array.isArray(r) ? r[1] : r?.[fields[1]])) || 0);
+  const lbls = rows.map((r) => String(cellText(Array.isArray(r) ? r[0] : r?.[fields[0]]) ?? ''));
+  const W = 640;
+  const H = 200;
+  const P = 28;
+  const max = Math.max(...pts, 1);
+  if (kind === 'pie') {
+    const total = pts.reduce((a, b) => a + Math.max(0, b), 0) || 1;
+    const cols = ['#1e3a8a', '#b78a3e', '#3b82f6', '#7c5cd6', '#14a06c', '#d0564b'];
+    let acc = 0;
+    const segs = pts
+      .map((p, i) => {
+        const r = 70;
+        const circ = 2 * Math.PI * r;
+        const frac = Math.max(0, p) / total;
+        const seg = `<circle cx="100" cy="100" r="${r}" fill="none" stroke="${cols[i % cols.length]}" stroke-width="38" stroke-dasharray="${(frac * circ).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(${(-90 + acc * 360).toFixed(1)} 100 100)"/>`;
+        acc += frac;
+        return seg;
+      })
+      .join('');
+    const legend = lbls
+      .map(
+        (l, i) =>
+          `<text x="205" y="${55 + i * 20}" font-size="12" fill="currentColor"><tspan fill="${cols[i % cols.length]}">■</tspan> ${esc(l)}</text>`,
+      )
+      .join('');
+    return `<svg viewBox="0 0 340 200">${segs}${legend}</svg>`;
+  }
+  if (kind === 'line') {
+    const step = (W - P * 2) / Math.max(pts.length - 1, 1);
+    const coords = pts.map(
+      (p, i) => `${(P + i * step).toFixed(1)},${(H - P - (p / max) * (H - P * 2)).toFixed(1)}`,
+    );
+    const dots = pts
+      .map(
+        (p, i) =>
+          `<circle cx="${(P + i * step).toFixed(1)}" cy="${(H - P - (p / max) * (H - P * 2)).toFixed(1)}" r="4" fill="var(--acc)"/>`,
+      )
+      .join('');
+    const xl = lbls
+      .map(
+        (l, i) =>
+          `<text x="${(P + i * step).toFixed(1)}" y="${H - 6}" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">${esc(l)}</text>`,
+      )
+      .join('');
+    return `<svg viewBox="0 0 ${W} ${H}"><polyline points="${coords.join(' ')}" fill="none" stroke="var(--acc)" stroke-width="2.5"/>${dots}${xl}</svg>`;
+  }
+  // bar (default)
+  const bw = (W - P * 2) / pts.length;
+  const bars = pts
+    .map((p, i) => {
+      const h = (p / max) * (H - P * 2);
+      return `<rect class="bar" x="${(P + i * bw + bw * 0.18).toFixed(1)}" y="${(H - P - h).toFixed(1)}" width="${(bw * 0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="4"/>`;
+    })
+    .join('');
+  const xl = lbls
+    .map(
+      (l, i) =>
+        `<text x="${(P + i * bw + bw / 2).toFixed(1)}" y="${H - 6}" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">${esc(l)}</text>`,
+    )
+    .join('');
+  return `<svg viewBox="0 0 ${W} ${H}">${bars}${xl}</svg>`;
+}
+
+function componentHtml(comp, state, actions, manifest) {
   const node = comp.state_path ? state?.[comp.state_path] : null;
   const type = comp.type;
-  if (type === 'banner' && node) return `<div class="banner">${esc(node.value)}</div>`;
+  if (type === 'hidden' || type === 'spinner') return '';
+  if (comp.action_id && comp.param != null) return ''; // bound into the action form
+  if (type === 'button' && comp.action_id && actions?.[comp.action_id])
+    return actionHtml(comp.action_id, actions[comp.action_id], manifest, {}, {}, { compact: true });
+  if (type === 'link') {
+    if (comp.action_id && actions?.[comp.action_id])
+      return actionHtml(
+        comp.action_id,
+        actions[comp.action_id],
+        manifest,
+        {},
+        {},
+        { compact: true },
+      );
+    if (comp.url)
+      return `<a class="ctab ${comp.variant ?? ''}" href="${esc(comp.url)}">${esc(comp.label ?? comp.url)}</a>`;
+    return '';
+  }
+  if (type === 'banner' && node)
+    return `<div class="banner">${esc(node.value ?? node.label ?? '')}</div>`;
   if (type === 'gallery' && node) return nodeHtml({ ...node, type: 'media' });
+  if (type === 'image' && node?.value?.[0]?.url)
+    return `<figure class="gitem wide"><img src="${esc(node.value[0].url)}" alt="${esc(node.value[0].alt ?? comp.label ?? '')}"/></figure>`;
+  if (type === 'price' && node)
+    return `<div class="pricebig">${esc(isMoneyNode(node) ? moneyFmt(node) : (node.value ?? ''))} <small>${esc(comp.label ?? node.label ?? '')}</small></div>`;
+  if (type === 'badge' && node)
+    return `<span class="badge${comp.variant === 'secondary' ? ' alt' : ''}">${esc(node.value ?? comp.label ?? '')}</span>`;
+  if (type === 'card' && node)
+    return `<div class="card"><div class="cb">${nodeHtml(node)}</div></div>`;
+  if (type === 'breadcrumbs') {
+    const trail = manifest.navigation?.breadcrumb ?? [];
+    return trail.length
+      ? `<nav class="crumbs">${trail.map((b) => `<a href="${esc(toSite(b.url))}">${esc(b.label)}</a>`).join('<span class="sep">›</span>')}</nav>`
+      : '';
+  }
+  if (type === 'order' && node)
+    return nodeHtml({ type: 'order', value: node.value, label: comp.label ?? node.label });
+  if (type === 'chart' && node)
+    return `<div class="chart">${comp.label ? `<h4>${esc(comp.label)}</h4>` : ''}${chartSvg(node, comp.chart_kind ?? 'bar')}</div>`;
   if (type === 'calendar') {
-    const items = node?.value ?? [];
-    const list = Array.isArray(items) ? items : [];
+    const list = Array.isArray(node?.value) ? node.value : [];
+    const prices = list.map((d) => Number(d?.price?.value ?? d?.price ?? Infinity));
+    const min = Math.min(...prices.filter(Number.isFinite), Infinity);
     return `<div class="cal"><h4>${esc(comp.label ?? node?.label ?? 'Calendar')}</h4><div class="calgrid">${list
       .map(
         (d) =>
-          `<div class="calday"><span>${esc(d?.date?.value ?? d?.date ?? '')}</span><strong>${esc(d?.price?.value ? moneyFmt(d.price) : (d?.price ?? ''))}</strong></div>`,
+          `<div class="calday${(d?.price?.value ?? d?.price) === min ? ' low' : ''}"><span>${esc(String(d?.date?.value ?? d?.date ?? '').slice(5))}</span><strong>${esc(d?.price?.value ? moneyFmt(d.price) : (d?.price ?? ''))}</strong></div>`,
       )
       .join('')}</div></div>`;
   }
   if (type === 'stepper' && node) {
     const max = node.max ?? 10;
     const pct = Math.min(100, Math.round((Number(node.value ?? 0) / max) * 100));
-    return `<div class="stepper"><div class="stepbar"><i style="width:${pct}%"></i></div><span>${esc(comp.label ?? '')} ${pct}%</span></div>`;
+    return `<div class="stepper"><div class="stepbar"><i style="width:${pct}%"></i></div><span>${esc(comp.label ?? node.label ?? '')}</span></div>`;
   }
-  if (type === 'chart' && node?.value) {
-    return nodeHtml({
-      type: 'table',
-      fields: node.fields ?? {},
-      value: node.value,
-      label: comp.label,
-    });
-  }
-  if (type === 'datepicker' && node) return nodeHtml(node);
-  return '';
-}
-
-function sectionHtml(sec, state) {
-  const node = state?.[sec.state_path];
-  if (!node) return '';
-  const inner =
-    sec.layout === 'detail' && node.type === 'object'
-      ? `<dl class="detail">${innerDl(node)}</dl>`
-      : sec.layout === 'table' || node.type === 'table'
-        ? nodeHtml({ ...node, type: 'table' })
-        : sec.layout === 'grid' && node.type === 'array'
-          ? nodeHtml(node, sec.state_path)
-          : nodeHtml(node, sec.state_path);
-  return `<section class="sec sec-${esc(sec.layout ?? 'detail')}" id="sec-${esc(sec.id ?? '')}"><h3>${esc(sec.label ?? node.label ?? sec.id ?? '')}</h3>${inner}</section>`;
-}
-
-/* ---------------- action inputs / forms ---------------- */
-
-function inputHtml(name, spec, values = {}) {
-  const desc = spec.description ?? humanize(name);
-  const val = values[name] ?? spec.default ?? '';
-  const req = spec.required ? ' required' : '';
-  const secret = spec._secret ? ' password' : 'text';
-  const id = `f_${name}`;
-  const lbl = `<label for="${id}">${esc(desc)}${spec.required ? ' <i>*</i>' : ''}</label>`;
-  switch (spec.type) {
-    case 'boolean':
-      return `<div class="fld check"><input type="checkbox" id="${id}" name="${esc(name)}" value="on"${val ? ' checked' : ''}/><label for="${id}">${esc(desc)}</label></div>`;
-    case 'enum':
-      return `<div class="fld">${lbl}<select id="${id}" name="${esc(name)}"${req}>${(
-        spec.options ?? []
+  if (type === 'tabs' && Array.isArray(comp.tabs)) {
+    return `<div class="tabs">${comp.tabs
+      .map(
+        (t, i) =>
+          `<a href="#sec-${esc(t.section)}"${i === 0 ? ' class="on"' : ''}>${esc(t.label)}</a>`,
       )
-        .map(
-          (o) =>
-            `<option value="${esc(o)}"${o === val ? ' selected' : ''}>${esc(spec.option_labels?.[o] ?? humanize(o))}</option>`,
-        )
-        .join('')}</select></div>`;
-    case 'number':
-    case 'quantity':
-      return `<div class="fld">${lbl}<input type="number" id="${id}" name="${esc(name)}" value="${esc(val)}"${req}${spec.min != null ? ` min="${spec.min}"` : ''}${spec.max != null ? ` max="${spec.max}"` : ''}/></div>`;
-    case 'date':
-      return `<div class="fld">${lbl}<input type="date" id="${id}" name="${esc(name)}" value="${esc(val)}"${req}/></div>`;
-    case 'daterange':
-      return `<div class="fld">${lbl}<input type="date" id="${id}" name="${esc(name)}_from" value="${esc(val.from ?? '')}"/><input type="date" name="${esc(name)}_to" value="${esc(val.to ?? '')}"/></div>`;
-    default:
-      return `<div class="fld">${lbl}<input type="${secret}" id="${id}" name="${esc(name)}" value="${esc(val)}"${req}${spec.pattern ? ` pattern="${esc(spec.pattern)}"` : ''}${spec.min_length ? ` minlength="${spec.min_length}"` : ''}${spec.max_length ? ` maxlength="${spec.max_length}"` : ''} autocomplete="off"/></div>`;
+      .join('')}</div>`;
   }
+  if (type === 'consent' && node)
+    return `<div class="consent"><b>${esc(comp.label ?? 'Consent')}</b> ${esc(typeof node.value === 'object' ? (node.value?.text ?? '') : (node.value ?? ''))}</div>`;
+  if (type === 'datepicker' && node) return nodeHtml(node);
+  if (type === 'table' && node) return nodeHtml({ ...node, type: 'table' });
+  return node ? nodeHtml(node, comp.state_path) : '';
 }
 
-function actionHtml(id, def, manifest) {
-  const url = toSite(def.action_url ?? manifest.page.url);
-  const ver = manifest.page.version;
-  const secretSet = new Set(def.policy?.secret_params ?? []);
-  const hasInput = def.input && Object.keys(def.input).length;
-  const confirmCls = def.requires_confirmation ? ' conf' : '';
-  const dangerCls = def.kind === 'delete' || def.side_effect === 'danger' ? ' danger' : '';
-  if (!hasInput && def.kind === 'navigate' && def.output?.navigates_to) {
-    return `<a class="btn" href="${esc(toSite(def.output.navigates_to))}">${esc(def.description ?? humanize(id))}</a>`;
-  }
-  const fields = hasInput
-    ? Object.entries(def.input)
-        .map(([name, spec]) => inputHtml(name, { ...spec, _secret: secretSet.has(name) }))
-        .join('')
-    : '';
-  return `<form class="act${confirmCls}${dangerCls}" method="post" action="${esc(url)}">
-<input type="hidden" name="__action" value="${esc(id)}"/>
-<input type="hidden" name="__version" value="${esc(ver)}"/>
-${fields}
-<button type="submit" class="btn${def.kind === 'navigate' ? ' primary' : ''}">${esc(def.description ?? humanize(id))}</button>
-</form>`;
-}
-
-/* ---------------- page assembly ---------------- */
+/** Collect param-bound components: { actionId: { param: comp } } — they render inside the form. */ /* ---------------- page assembly ---------------- */
 
 export function renderErrorPage({
   skin,
@@ -329,7 +409,7 @@ export function renderErrorPage({
   return shell({
     skin,
     title: `Error ${status}`,
-    body: `<main class="wrap"><div class="errcard"><h2>${esc(status)} — ${esc(code)}</h2><p>${esc(message)}</p>${back ? `<a class="btn" href="${esc(back)}">Go back</a>` : ''}</div></main>`,
+    body: `<main class="wrap tight"><div class="errcard"><h2>${esc(status)} — ${esc(code)}</h2><p>${esc(message)}</p>${back ? `<a class="btn" href="${esc(back)}">Go back</a>` : ''}</div></main>`,
   });
 }
 
@@ -344,8 +424,9 @@ export function renderConfirmPage({ skin, manifest, actionId, def, params, token
     .join('');
   return shell({
     skin,
+    manifest,
     title: def.confirm?.title ?? 'Confirm',
-    body: `<main class="wrap"><div class="card confcard"><h2>${esc(def.confirm?.title ?? 'Please confirm')}</h2><p>${body}</p>
+    body: `<main class="wrap tight"><div class="confcard"><h2>${esc(def.confirm?.title ?? 'Please confirm')}</h2><p>${body}</p>
 <form method="post" action="${esc(url)}">
 <input type="hidden" name="__action" value="${esc(actionId)}"/>
 <input type="hidden" name="__version" value="${esc(manifest.page.version)}"/>
@@ -374,8 +455,9 @@ export function renderChallengePage({
     .join('');
   return shell({
     skin,
+    manifest,
     title: 'Verification required',
-    body: `<main class="wrap"><div class="card confcard"><h2>Verification required</h2><p>${esc(challenge?.kind?.value ?? 'Verification')} — enter the code to continue.</p>
+    body: `<main class="wrap tight"><div class="confcard"><h2>Verification required</h2><p>${esc(challenge?.kind?.value ?? 'Verification')} — enter the code to continue.</p>
 <form method="post" action="${esc(url)}">
 <input type="hidden" name="__action" value="${esc(actionId)}"/>
 <input type="hidden" name="__version" value="${esc(manifest.page.version)}"/>
@@ -393,16 +475,27 @@ export function renderPage(manifest, { skin }) {
   const slug = String(manifest.page?.url ?? '')
     .split('/')
     .pop();
+  const hints = paramHints(present.components);
+  const bound = new Set(
+    Object.values(present.components ?? {})
+      .filter((c) => c.action_id && (c.type === 'button' || c.type === 'link') && c.param == null)
+      .map((c) => c.action_id),
+  );
   const comps = Object.values(present.components ?? {})
-    .map((c) => componentHtml(c, state))
+    .map((c) => componentHtml(c, state, actions, manifest))
     .join('');
   const sections = (present.sections ?? []).map((s) => sectionHtml(s, state)).join('');
   const acts = Object.entries(actions)
-    .map(([id, def]) => actionHtml(id, def, manifest))
+    .filter(([id]) => !bound.has(id) && id !== skin?.heroForm?.[slug])
+    .map(([id, def]) => actionHtml(id, def, manifest, {}, hints[id] ?? {}))
     .join('');
   const crumbs = (navigation.breadcrumb ?? [])
+    .slice(0, -1)
     .map((b) => `<a href="${esc(toSite(b.url))}">${esc(b.label)}</a>`)
     .join('<span class="sep">›</span>');
+  const related = (navigation.related ?? [])
+    .map((r) => `<a class="ctab" href="${esc(toSite(r.url))}">${esc(r.label)}</a>`)
+    .join('');
   const err = manifest.error
     ? `<div class="errbar">${esc(manifest.error.message ?? manifest.error.code ?? 'Error')}</div>`
     : '';
@@ -412,125 +505,114 @@ export function renderPage(manifest, { skin }) {
           .map(([k, v]) => nodeHtml(v, k))
           .join('')}</dl>`
       : '';
-  const hero = skin?.heroes?.[slug]
-    ? `<div class="hero"><img src="${esc(skin.heroes[slug].img)}" alt=""/><div class="inner"><h2>${skin.heroes[slug].heading}</h2><p>${esc(skin.heroes[slug].sub)}</p></div></div>`
+  // hero + booking widget
+  const heroDef = skin?.heroes?.[slug];
+  const heroActionId = skin?.heroForm?.[slug];
+  const heroAction = heroActionId ? actions?.[heroActionId] : null;
+  const tabs = skin?.heroTabs?.length
+    ? `<div class="tabs">${skin.heroTabs.map((t) => `<a href="${esc(t.url)}"${t.slug === slug ? ' class="on"' : ''}>${esc(t.label)}</a>`).join('')}</div>`
     : '';
+  const widget =
+    tabs || heroAction
+      ? `<div class="widget"><div class="wbody">${tabs}${
+          heroAction
+            ? `<form method="post" action="${esc(toSite(heroAction.action_url ?? manifest.page.url))}"><input type="hidden" name="__action" value="${esc(heroActionId)}"/><input type="hidden" name="__version" value="${esc(manifest.page.version)}"/><div class="fgrid">${Object.entries(
+                heroAction.input ?? {},
+              )
+                .map(([name, spec]) => inputHtml(name, spec, {}, (hints[heroActionId] ?? {})[name]))
+                .join(
+                  '',
+                )}<div class="fsub"><button class="btn primary" type="submit">${esc(heroAction.description ?? humanize(heroActionId))}</button></div></div></form>`
+            : ''
+        }</div></div>`
+      : '';
+  const strip = (skin?.strips?.[slug] ?? [])
+    .map((st) => `<div class="st"><b>${esc(st.value)}</b><span>${esc(st.label)}</span></div>`)
+    .join('');
   const promo = skin?.promos?.[slug] ?? '';
+  const theme = present.theme ?? {};
   return shell({
     skin,
+    manifest,
     title: manifest.page.title,
-    hero,
-    body: `${err}<main class="wrap">
+    hero: heroDef
+      ? `<div class="hero"><img src="${esc(heroDef.img)}" alt=""/><div class="inner"><h2>${heroDef.heading}</h2><p>${esc(heroDef.sub ?? '')}</p></div></div>`
+      : '',
+    widget,
+    themeVars: themeVars(theme, skin),
+    body: `${err}<main class="wrap"${present.a11y?.live_region ? ` aria-live="${esc(present.a11y.live_region)}"` : ''}${present.a11y?.page_label ? ` aria-label="${esc(present.a11y.page_label)}"` : ''}>
 ${crumbs ? `<nav class="crumbs">${crumbs}</nav>` : ''}
 <h1>${esc(manifest.page.title)}</h1>
 ${comps}
 ${mainState}
 ${sections}
+${strip ? `<div class="strip">${strip}</div>` : ''}
 ${promo}
 ${acts ? `<div class="actions">${acts}</div>` : ''}
+${related ? `<div class="actions row" style="margin-top:18px">${related}</div>` : ''}
 </main>`,
   });
 }
 
-function shell({ skin, title, body, hero = '' }) {
+function themeVars(theme, skin) {
+  const p = theme.palette ?? [];
+  const vars = {};
+  if (p[0]) vars.bg = p[0];
+  if (p[1]) vars.card = p[1];
+  if (p[2]) vars.acc = p[2];
+  if (theme.font_body) vars.font = theme.font_body;
+  return { ...vars, dark: theme.dark ?? skin?.dark };
+}
+
+function shell({ skin, manifest, title, body, hero = '', widget = '', themeVars: tv }) {
   const s = skin ?? {};
+  const util = (s.utilityNav ?? [])
+    .map(
+      (n, i) =>
+        `${i ? '<span class="sep">·</span>' : ''}<a href="${esc(n.url)}">${esc(n.label)}</a>`,
+    )
+    .join('');
   const nav = (s.nav ?? []).map((n) => `<a href="${esc(n.url)}">${esc(n.label)}</a>`).join('');
-  const footer = s.footerHtml ?? '';
+  const cols = (s.footerColumns ?? [])
+    .map(
+      (c) =>
+        `<div><h5>${esc(c.heading)}</h5>${(c.links ?? [])
+          .map((l) => `<a href="${esc(l.url)}">${esc(l.label)}</a>`)
+          .join('')}</div>`,
+    )
+    .join('');
+  const footer = cols
+    ? `<div class="cols">${cols}</div><div class="base">${s.footerNote ?? s.footerHtml ?? ''}</div>`
+    : `<div class="base">${s.footerHtml ?? s.footerNote ?? ''}</div>`;
   const cookie = s.cookieBanner
-    ? `<div class="cookie">We use cookies to make Multiversal better for humans. <form method="post" action="${esc(s.cookieAction ?? '#')}" style="display:inline"><button class="btn slim" type="submit">OK</button></form></div>`
+    ? `<div class="cookie"><span>${esc(s.cookieText ?? 'We use cookies to improve your experience.')}</span><form method="post" action="${esc(s.cookieAction ?? '#')}"><button class="btn slim" type="submit">OK</button></form></div>`
     : '';
+  const inlineVars = tv
+    ? `:root{${Object.entries(tv)
+        .filter(([k, v]) => v && k !== 'dark' && k !== 'font')
+        .map(([k, v]) => `--${k === 'bg' ? 'bg' : k === 'card' ? 'card' : 'acc'}:${v}`)
+        .join(';')}}`
+    : '';
+  const lang = manifest?.language ?? s.lang ?? 'en';
   return `<!doctype html>
-<html lang="en">
+<html lang="${esc(lang)}">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${esc(title)}${s.brand ? ` — ${esc(s.brand)}` : ''}</title>
 ${s.appUrl ? `<link rel="alternate" type="application/vnd.agent-page+json" href="${esc(s.appUrl)}"/>` : ''}
-<style>${css(s)}</style>
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(s.favicon ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">◆</text></svg>')}"/>
+<style>${siteCss(s)}${inlineVars}</style>
 </head>
 <body>
-<header class="top"><a class="brand" href="${esc(s.homeUrl ?? '#')}">${s.logoHtml ?? esc(s.brand ?? '')}</a><nav>${nav}</nav></header>
+<a class="skip" href="#main">Skip to content</a>
+${util ? `<div class="topbar">${util}</div>` : ''}
+<header class="top"><a class="brand" href="${esc(s.homeUrl ?? '#')}">${s.logoHtml ?? esc(s.brand ?? '')}</a><nav>${nav}</nav><div class="spacer"></div></header>
 ${hero}
+${widget}
 ${body}
 ${cookie}
 <footer class="foot">${footer}</footer>
 </body>
 </html>`;
-}
-
-function css(s) {
-  const c = {
-    bg: '#0b1220',
-    card: '#131c33',
-    ink: '#e8edf7',
-    dim: '#93a0b8',
-    acc: s.accent ?? '#6ea8fe',
-    acc2: s.accent2 ?? '#9d6efe',
-    ...(s.colors ?? {}),
-  };
-  return `:root{--bg:${c.bg};--card:${c.card};--ink:${c.ink};--dim:${c.dim};--acc:${c.acc};--acc2:${c.acc2}}
-*{box-sizing:border-box}body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
-a{color:var(--acc);text-decoration:none}
-.top{display:flex;align-items:center;gap:24px;padding:14px 28px;background:rgba(11,18,32,.85);backdrop-filter:blur(8px);border-bottom:1px solid #1e2a47;position:sticky;top:0;z-index:5}
-.brand{font-weight:800;font-size:20px;letter-spacing:.4px;color:var(--ink)}
-.brand b{color:var(--acc)}
-.top nav{display:flex;gap:18px;font-size:14px}
-.top nav a{color:var(--dim)}.top nav a:hover{color:var(--ink)}
-.wrap{max-width:1060px;margin:0 auto;padding:26px 22px 60px}
-h1{font-size:30px;margin:18px 0 6px}h3{color:var(--dim);font-size:14px;letter-spacing:.6px;text-transform:uppercase}
-.crumbs{font-size:13px;color:var(--dim);margin-top:10px}.crumbs .sep{margin:0 8px;color:#445}
-.crumbs a{color:var(--dim)}
-.banner{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#06101f;padding:12px 16px;border-radius:10px;font-weight:600;margin:14px 0}
-.detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 26px}
-dt{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
-dd{margin:0 0 10px;font-size:15px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:10px 0}
-.card{background:var(--card);border:1px solid #223156;border-radius:12px;padding:14px 16px}
-.card h4{margin:0 0 8px;color:var(--acc)}
-.objcard{background:var(--card);border:1px solid #223156;border-radius:12px;padding:12px 16px;margin:10px 0}
-.tblwrap{overflow-x:auto;margin:10px 0}
-table{border-collapse:collapse;width:100%;background:var(--card);border-radius:10px;overflow:hidden}
-th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #223156;font-size:14px}
-th{background:#0f1830;color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.5px}
-tr:hover td{background:#182a52}
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:12px 0}
-.gitem{margin:0;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid #223156}
-.gitem img{width:100%;height:150px;object-fit:cover;display:block}
-.gitem figcaption{padding:10px;font-size:13px}
-.calgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
-.calday{background:var(--card);border:1px solid #223156;border-radius:8px;padding:8px;text-align:center}
-.calday span{display:block;font-size:11px;color:var(--dim)}
-.stepper{display:flex;align-items:center;gap:10px}.stepbar{flex:1;height:8px;background:#1c2a4d;border-radius:99px;overflow:hidden}.stepbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
-.embed iframe{width:100%;border:0;border-radius:12px;background:#000}
-.md{max-width:70ch}.md code{background:#0f1830;padding:1px 5px;border-radius:5px}
-.tree ul{list-style:none;border-left:1px solid #223156;padding-left:16px}
-.fld{margin:8px 0}.fld label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px}
-.fld input,.fld select{width:100%;max-width:340px;padding:9px 11px;border-radius:8px;border:1px solid #2a3b63;background:#0e1830;color:var(--ink);font:inherit}
-.fld.check{display:flex;align-items:center;gap:8px}.fld.check input{width:auto}
-.fld.check label{margin:0;font-size:14px;color:var(--ink)}
-.fld i{color:var(--acc)}
-.act{margin:10px 0;padding:12px;border:1px dashed #2a3b63;border-radius:12px;background:#0e1730}
-.act.conf{border-color:var(--acc)}
-.act.danger{border-color:#e0607a}
-.btn{display:inline-block;background:#22345f;color:var(--ink);border:1px solid #34497e;border-radius:9px;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer;margin:4px 6px 4px 0}
-.btn.primary{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#071020;font-weight:700;border:0}
-.btn.ghost{background:transparent}
-.btn.slim{padding:4px 10px;font-size:12px}
-.btn:hover{filter:brightness(1.15)}
-.actions{margin:18px 0}
-.chip{display:inline-block;background:#22345f;border-radius:99px;padding:2px 10px;font-size:12px}
-.chip.yes{background:#1d5c3a}.chip.no{background:#5c2233}
-.file{border:1px solid #2a3b63;padding:6px 12px;border-radius:8px}
-.errbar{background:#5c2233;border:1px solid #e0607a;color:#ffd9e2;padding:10px 16px;font-weight:600}
-.errcard{background:var(--card);border:1px solid #e0607a;border-radius:14px;padding:26px;margin:40px auto;max-width:560px}
-.confcard{border-color:var(--acc);max-width:560px;margin:30px auto;padding:22px}
-.cookie{position:fixed;bottom:0;left:0;right:0;background:#0e1730;border-top:1px solid #223156;padding:12px 22px;font-size:13px;color:var(--dim);display:flex;gap:12px;align-items:center;justify-content:center}
-.foot{border-top:1px solid #1e2a47;margin-top:40px;padding:28px;color:var(--dim);font-size:13px;text-align:center}
-.hero{position:relative;min-height:300px;display:flex;align-items:flex-end;overflow:hidden}
-.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-.hero .inner{position:relative;padding:40px 28px;max-width:1060px;margin:0 auto;width:100%}
-.hero h2{font-size:38px;margin:0;text-shadow:0 2px 14px #000}
-.hero p{color:#dfe8ff;text-shadow:0 1px 8px #000}
-.dim{color:var(--dim)}
-${s.extraCss ?? ''}`;
 }
