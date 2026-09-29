@@ -23,7 +23,7 @@ export function buildAftersalePages(origin) {
       version: 'mva-mng-1',
       state: {
         help: str(
-          'Enter your 6-character reference and last name. Demo booking: MV4X8R / MAN.',
+          'Enter your 6-character reference and last name. Demo booking: MV4X8R / ASHFORD.',
           'Find your booking',
         ),
       },
@@ -258,7 +258,7 @@ export function buildAftersalePages(origin) {
       state: {
         pass: obj(
           {
-            passenger: str('MAN/MOSES MR', 'Passenger'),
+            passenger: str('ASHFORD/REMY MR', 'Passenger'),
             flight: str('MV17', 'Flight'),
             route: str('LHR → JFK', 'Route'),
             date: str('Mon 12 Oct 2026', 'Date'),
@@ -384,8 +384,8 @@ export function buildAftersalePages(origin) {
             user: {
               type: 'enum',
               description: 'Account',
-              options: ['moses', 'jane'],
-              option_labels: { moses: 'Moses Man (Gold)', jane: 'Jane Doe (Platinum)' },
+              options: ['remy', 'jane'],
+              option_labels: { remy: 'Remy Ashford (Gold)', jane: 'Jane Doe (Platinum)' },
               required: true,
             },
           },

@@ -24,7 +24,7 @@ export function buildPayPages(origin) {
           {
             route: str('LHR ⇄ JFK', 'Route'),
             flights: str('MV17 · MV18', 'Flights'),
-            passenger: str('Mr Moses Man', 'Lead passenger'),
+            passenger: str('Mr Remy Ashford', 'Lead passenger'),
             status: str('awaiting_payment', 'Status'),
           },
           'Order',
@@ -140,7 +140,7 @@ export function buildPayPages(origin) {
           {
             ref: str('MV8T2Q', 'Booking reference'),
             status: str('confirmed', 'Status'),
-            passenger: str('Mr Moses Man', 'Lead passenger'),
+            passenger: str('Mr Remy Ashford', 'Lead passenger'),
             route: str('LHR ⇄ JFK', 'Route'),
             outbound: str('MV17 · Mon 12 Oct 11:30 → 14:20', 'Outbound'),
             return_leg: str('MV18 · Mon 19 Oct 21:30 → 09:15+1', 'Return'),

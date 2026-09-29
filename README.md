@@ -172,4 +172,4 @@ Key headers: `X-APP-Version`, `X-APP-Page-Id`, `X-APP-Response-Mode`,
 
 ## License
 
-[MIT](LICENSE) © 2026 Moses Man
+[MIT](LICENSE) © 2026 mosesman831

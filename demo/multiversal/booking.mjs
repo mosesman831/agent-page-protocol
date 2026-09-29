@@ -296,7 +296,7 @@ export function buildBookingPages(origin) {
         ),
         party: obj(
           {
-            passenger: str('Mr Moses Man', 'Adult 1'),
+            passenger: str('Mr Remy Ashford', 'Adult 1'),
             seats: str('24K (out) · 24A (ret)', 'Seats'),
             meal: str('Standard', 'Meal'),
             contact: str('mo***@*** (hidden)', 'Contact'),

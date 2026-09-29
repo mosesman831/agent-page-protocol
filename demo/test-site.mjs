@@ -143,7 +143,7 @@ try {
     const res = await form('/site/mva/manage', {
       __action: 'find_booking',
       booking_ref: 'MV4X8R',
-      surname: 'man',
+      surname: 'ashford',
     });
     const loc = res.headers.get('location') ?? '';
     check(
@@ -161,7 +161,7 @@ try {
       card_number: '4242424242424242',
       expiry: '12/28',
       cvv: '123',
-      name_on_card: 'MOSES MAN',
+      name_on_card: 'REMY ASHFORD',
       billing_postcode: 'SW1A 1AA',
       billing_country: 'gb',
     };

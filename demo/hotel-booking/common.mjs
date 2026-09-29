@@ -283,8 +283,8 @@ export const ROOM_RATES = [
 export const SEED_BOOKINGS = {
   HVN4X8: {
     ref: 'HVN4X8',
-    surname: 'man',
-    guest: 'Moses Man',
+    surname: 'ashford',
+    guest: 'Remy Ashford',
     house: 'The Observatory — Halvern House, Edinburgh',
     room: 'Deluxe King — breakfast included',
     checkin: 'Fri 6 Nov 2026 · from 15:00',
