@@ -48,6 +48,30 @@ export function tableHtml(sec, node) {
       return `<td class="r num">${esc(typeof v === 'object' && v?.value != null ? (isMoneyNode(v) ? moneyFmt(v) : v.value) : isMoneyNode(v) ? moneyFmt(v) : v)}</td>`;
     if (col.format === 'number' || col.format === 'duration_min')
       return `<td class="r num">${esc(typeof v === 'object' ? (v.value ?? '') : v)}${col.format === 'duration_min' ? ' min' : ''}</td>`;
+    if (col.format === 'date' || col.format === 'datetime') {
+      const raw = typeof v === 'object' ? (v?.value ?? '') : v;
+      const t = Date.parse(raw);
+      const formatted = Number.isNaN(t)
+        ? raw
+        : col.format === 'date'
+          ? new Date(t).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+          : new Date(t).toLocaleString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              hour: 'numeric',
+              minute: '2-digit',
+            });
+      return `<td>${esc(formatted)}</td>`;
+    }
+    if (col.format === 'percent') {
+      const raw = typeof v === 'object' ? (v?.value ?? '') : v;
+      const n = Number(raw);
+      return `<td class="r num">${esc(Number.isNaN(n) ? raw : `${Math.round(n * 100)}%`)}</td>`;
+    }
     const cls = col.align === 'right' ? ' class="r"' : col.align === 'center' ? ' class="c"' : '';
     return `<td${cls}>${esc(cellText(v))}</td>`;
   };
