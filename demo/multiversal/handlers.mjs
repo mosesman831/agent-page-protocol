@@ -84,7 +84,8 @@ export function makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppErr
     find_booking: async (ctx) => {
       const ref = String(ctx.params.booking_ref ?? '').toUpperCase();
       const surname = String(ctx.params.surname ?? '').toLowerCase();
-      const ok = (ref === 'MV4X8R' && surname === 'man') || (ref === 'MV9T2Q' && surname === 'doe');
+      const ok =
+        (ref === 'MV4X8R' && surname === 'ashford') || (ref === 'MV9T2Q' && surname === 'doe');
       if (!ok)
         throw new AppError('app.err.validation.param_value', {
           message: `No booking found for ${ref} / ${surname}`,
@@ -126,8 +127,8 @@ export function makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppErr
 
     sign_in: async (ctx) =>
       mutate(ctx, (next) => {
-        const who = String(ctx.params.user ?? 'moses');
-        next.state.member.value.name.value = who === 'jane' ? 'Jane Doe' : 'Moses Man';
+        const who = String(ctx.params.user ?? 'remy');
+        next.state.member.value.name.value = who === 'jane' ? 'Jane Doe' : 'Remy Ashford';
         next.state.member.value.tier.value = who === 'jane' ? 'Platinum' : 'Gold';
         next.state.member.value.points.value = who === 'jane' ? 48200 : 12400;
         next.state.hint.value = 'Signed in. Trips and points are live.';

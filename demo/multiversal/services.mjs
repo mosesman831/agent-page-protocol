@@ -303,8 +303,8 @@ export function buildServicePages(origin) {
             user: {
               type: 'enum',
               description: 'Demo account',
-              options: ['moses', 'jane'],
-              option_labels: { moses: 'Moses Man', jane: 'Jane Doe' },
+              options: ['remy', 'jane'],
+              option_labels: { remy: 'Remy Ashford', jane: 'Jane Doe' },
             },
           },
         },

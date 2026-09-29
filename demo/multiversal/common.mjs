@@ -268,8 +268,8 @@ export const EXTRAS = [
 export const SEED_BOOKINGS = {
   MV4X8R: {
     ref: 'MV4X8R',
-    surname: 'man',
-    pax: 'Moses Man (Adult)',
+    surname: 'ashford',
+    pax: 'Remy Ashford (Adult)',
     route: 'London Heathrow (LHR) → New York JFK (JFK)',
     outbound: 'MV17 · Mon 12 Oct 2026 · 11:30 → 14:20',
     return: 'MV18 · Mon 19 Oct 2026 · 21:30 → 09:15+1',

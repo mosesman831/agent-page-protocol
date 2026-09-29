@@ -1,6 +1,6 @@
 # Product Idea Stress Tests — Team Handoff
 
-**For:** teammate agents and humans (Riyansh, Jack, Moses)  
+**For:** teammate agents and humans (Riyansh, Jack, Remy)  
 **Date:** 2026-09-26 (Europe/London)  
 **Context:** Grok Bot Commerce London hackathon (single-day build). APP is largely pre-built; day-of delta is mainly payments + negotiation demo + Grok Bot integration + renderer polish.  
 **Purpose:** Decide how much _additional_ time, money, and attention each idea deserves _after_ the hackathon — not whether today’s demo is clever.
@@ -203,7 +203,7 @@ Sell **agent policy, audit trails, and HITL gates** to firms that already hold m
 
 | When                   | Who                             | Action                                                                                        |
 | ---------------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
-| Today                  | Moses / all                     | Ship demo per handoff; honest day-of delta story                                              |
+| Today                  | Remy / all                      | Ship demo per handoff; honest day-of delta story                                              |
 | Day after              | Jack (or whoever owns strategy) | Decide: park APP competing-standard thesis vs schedule Bottleneck Belief outreach (1–2 weeks) |
 | Only if continuing APP | Anyone                          | 20-question distribution test (section 1 experiment); no new protocol surface until results   |
 | Catalogue / trading    | —                               | No work unless explicit wedge + owner + experiment date                                       |
