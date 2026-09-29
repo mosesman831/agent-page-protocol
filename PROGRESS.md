@@ -1574,3 +1574,7 @@ Root, server, client, and conformance bumped 0.4.0 → 0.5.0 so every published 
 ## Stage 91 — cold-instance self-heal (serverless state resets)
 
 Live demos hit `app.err.diff.conflict` whenever a POST landed on a fresh Vercel instance: every instance re-seeds worlds in memory, so a client holding `res-2` from a dead instance 409ed forever against `res-1`. Fix (demo layer, protocol untouched): while a manifest is still at its seed version on this instance — unmutated, so no real concurrent write could exist — a mismatched `X-APP-If-Match-Version`/`__version` is retargeted to the current version and the action applies to the seeded world. Once a world is mutated past seed, mismatches keep their real 409. Verified: stale-on-seed applies (counter inc → diff; gc form join → 200), stale-on-mutated still 409s on both wire and DOM paths. Persistent fix remains a shared store (KV).
+
+## Stage 92 — dead toggle switches fixed
+
+Boolean/`hint:'toggle'` fields rendered a visual switch whose native input was `opacity:0; width:0; height:0` — clicks on the `.tk` knob hit a plain span, so every toggle was un-clickable (the text label worked, the switch didn't). Both render paths now wrap input + knob in `<label class="switch" for>` so the whole control toggles; the `input:checked+.tk` CSS is unchanged.
