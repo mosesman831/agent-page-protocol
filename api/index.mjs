@@ -28,6 +28,8 @@ import { buildGcPages } from '../demo/google-classroom/pages.mjs';
 import { buildLabPages } from '../demo/protocol-lab/pages.mjs';
 import { buildMvaPages } from '../demo/multiversal/pages.mjs';
 import { mvaSkin } from '../demo/multiversal/skin.mjs';
+import { gcSkin } from '../demo/google-classroom/skin.mjs';
+import { labSkin } from '../demo/protocol-lab/skin.mjs';
 import { wellKnownManifest } from '../demo/lib/discovery.mjs';
 import { str, obj, navAction } from '../demo/lib/nodes.mjs';
 
@@ -79,7 +81,11 @@ function sitesFor(origin) {
 }
 
 function skinsFor(origin) {
-  return ENABLED.has('mva') ? { mva: mvaSkin(origin) } : {};
+  const skins = {};
+  if (ENABLED.has('mva')) skins.mva = mvaSkin(origin);
+  if (ENABLED.has('gc')) skins.gc = gcSkin(origin);
+  if (ENABLED.has('lab')) skins.lab = labSkin(origin);
+  return skins;
 }
 
 async function appFor(origin) {

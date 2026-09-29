@@ -17,6 +17,7 @@ import { buildBaPages } from './british-airways/pages.mjs';
 import { buildHotelPages } from './hotel-booking/pages.mjs';
 import { buildGcPages } from './google-classroom/pages.mjs';
 import { buildMvaPages } from './multiversal/pages.mjs';
+import { buildLabPages } from './protocol-lab/pages.mjs';
 import { classifyDocument } from '../extension/protocol/parse.js';
 import { validateManifest } from '../extension/protocol/validate.js';
 
@@ -32,6 +33,7 @@ const SITES = {
   ba: buildBaPages(ORIGIN),
   hotel: buildHotelPages(ORIGIN),
   gc: buildGcPages(ORIGIN),
+  lab: buildLabPages(ORIGIN),
   mva: buildMvaPages(ORIGIN),
 };
 

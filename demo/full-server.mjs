@@ -14,6 +14,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { makeMvaHandlers } from './multiversal/handlers.mjs';
+import { makeGcHandlers } from './google-classroom/handlers.mjs';
 import { mountSiteRoutes } from './lib/site-routes.mjs';
 
 const bump = (v) => {
@@ -304,6 +305,24 @@ export async function createFullDemoApp({
         diff: [{ op: 'replace', path: '/state/counter/value', value: next.state.counter.value }],
       });
       return { type: 'diff', nextManifest: next };
+    },
+
+    // playground: echo received params into state.last_echo
+    inspect_params: async (ctx) => {
+      const next = structuredClone(ctx.manifest);
+      const echo = { type: 'object', value: {}, label: 'Last request' };
+      for (const [k, v] of Object.entries(ctx.params)) {
+        echo.value[k] = {
+          type: 'string',
+          value: typeof v === 'object' ? JSON.stringify(v) : String(v),
+          label: k,
+        };
+      }
+      next.state.last_echo = echo;
+      next.page.version = bump(next.page.version);
+      storeManifest(next);
+      pushEvent(next.page.url, next, null);
+      return { type: 'full', manifest: next };
     },
 
     // async: 202 then status_url flips to succeeded
@@ -612,6 +631,7 @@ export async function createFullDemoApp({
 
   // ---- Multiversal Airways handlers (real state mutations) ----------------
   const mvaHandlers = makeMvaHandlers({ origin, bump, storeManifest, pushEvent, AppError });
+  const gcHandlers = makeGcHandlers({ bump, storeManifest, pushEvent, AppError });
 
   // Generic resolver for every action id on any demo site. Lab + mva ids get
   // bespoke handlers; everything else follows output.navigates_to or echoes
@@ -625,6 +645,11 @@ export async function createFullDemoApp({
     const isMva = ctx.manifest.page.url.includes('/app/mva/');
     if (isMva) {
       const h = mvaHandlers[ctx.actionId];
+      if (h) return h(ctx);
+    }
+    const isGc = ctx.manifest.page.url.includes('/app/gc/');
+    if (isGc) {
+      const h = gcHandlers[ctx.actionId];
       if (h) return h(ctx);
     }
     const def = ctx.manifest.actions?.[ctx.actionId];
